@@ -14,4 +14,4 @@ add_executable(
         AmplInputParser.h
         RawInputParser.cpp
         RawInputParser.h
-)
+        InputParserFactory.h)

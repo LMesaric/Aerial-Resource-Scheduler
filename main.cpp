@@ -1,9 +1,9 @@
-#include "AmplInputParser.h"
-#include "RawInputParser.h"
+#include "InputParserFactory.h"
 
 #include <CLI11.hpp>
 #include <fstream>
 #include <iostream>
+#include <map>
 
 
 int main(int argc, char *argv[]) {
@@ -11,12 +11,20 @@ int main(int argc, char *argv[]) {
 
     CLI::App myApp{"Aerial Resource Scheduler"};
 
-    std::string myFilename = myStdinFilename;
+    std::string myFilename{myStdinFilename};
     myApp.add_option(
             "-i,--input",
             myFilename,
             "Path to input file. Reads from stdin if omitted or set to a dash symbol."
     )->required(false);
+
+    InputFormat myInputFormat{};
+    std::map<std::string, InputFormat> myInputFormatMap{
+            {"raw",  InputFormat::Raw},
+            {"ampl", InputFormat::Ampl}};
+    myApp.add_option("-f,--format", myInputFormat, "Input data format.")
+            ->required(true)
+            ->transform(CLI::CheckedTransformer(myInputFormatMap, CLI::ignore_case));
 
     CLI11_PARSE(myApp, argc, argv);
 
@@ -36,9 +44,8 @@ int main(int argc, char *argv[]) {
         myInputStream = &myFile;
     }
 
-//    auto myParser = AmplInputParser{};
-    auto myParser = RawInputParser{};
-    auto myParameters = myParser.parse(*myInputStream);
+    auto myParser = InputParserFactory(myInputFormat).getParser();
+    auto myParameters = myParser->parse(*myInputStream);
 
     return 0;
 }
