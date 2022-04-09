@@ -3,14 +3,14 @@
 
 namespace {
     template<typename T>
-    void parseSingleParamAllVehicles(std::ifstream &aStream, Parameters &aParameters, T Vehicle::* field) {
+    void parseSingleParamAllVehicles(std::istream &aStream, Parameters &aParameters, T Vehicle::* field) {
         for (auto &myVehicle: aParameters.theVehicles) {
             aStream >> myVehicle.*field;
         }
     }
 
     template<typename T>
-    void parseDownloadsAllVehicles(std::ifstream &aStream, Parameters &aParameters,
+    void parseDownloadsAllVehicles(std::istream &aStream, Parameters &aParameters,
                                    std::vector<std::vector<T>> Vehicle::* field) {
 
         for (auto &myVehicle: aParameters.theVehicles) {
@@ -28,7 +28,7 @@ namespace {
     }
 }
 
-Parameters RawInputParser::parse(std::ifstream &aStream) {
+Parameters RawInputParser::parse(std::istream &aStream) {
     Parameters myParameters{};
 
     std::size_t myVehiclesCount;

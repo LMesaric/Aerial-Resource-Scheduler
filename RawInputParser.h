@@ -4,5 +4,5 @@
 
 class RawInputParser : public IInputParser {
 public:
-    Parameters parse(std::ifstream &aStream) override;
+    Parameters parse(std::istream &aStream) override;
 };

@@ -16,7 +16,7 @@ namespace {
     }
 
     template<typename T>
-    std::vector<T> parseOneDimensionMap(std::ifstream &aStream, std::uint32_t aCount) {
+    std::vector<T> parseOneDimensionMap(std::istream &aStream, std::uint32_t aCount) {
         std::vector<T> myVector;
         myVector.resize(aCount);
 
@@ -31,7 +31,7 @@ namespace {
 
     template<typename T>
     std::vector<std::vector<T>> parseTwoDimensionMap(
-            std::ifstream &aStream, std::uint32_t aRowCnt, std::uint32_t aColCnt) {
+            std::istream &aStream, std::uint32_t aRowCnt, std::uint32_t aColCnt) {
         std::vector<std::vector<T>> myVector{aRowCnt, std::vector<T>(aColCnt)};
 
         std::string myDump;
@@ -47,7 +47,7 @@ namespace {
     }
 
     template<typename T>
-    void parseSingleParamAllVehicles(std::ifstream &aStream, Parameters &aParameters, T Vehicle::* field) {
+    void parseSingleParamAllVehicles(std::istream &aStream, Parameters &aParameters, T Vehicle::* field) {
         std::string myLine;
         REPEAT(3) std::getline(aStream, myLine); // comment; blank; param
 
@@ -58,7 +58,7 @@ namespace {
     }
 
     template<typename T>
-    void parseDownloadsAllVehicles(std::ifstream &aStream, Parameters &aParameters,
+    void parseDownloadsAllVehicles(std::istream &aStream, Parameters &aParameters,
                                    std::vector<std::vector<T>> Vehicle::* field) {
         std::string myLine;
         REPEAT(3) std::getline(aStream, myLine); // comment; blank; param
@@ -80,7 +80,7 @@ namespace {
     }
 }
 
-Parameters AmplInputParser::parse(std::ifstream &aStream) {
+Parameters AmplInputParser::parse(std::istream &aStream) {
     Parameters myParameters{};
 
     std::string myLine;
