@@ -39,6 +39,10 @@ struct Parameters {
     std::vector<Front> theFronts;
     std::vector<Vehicle> theVehicles;
 
+    double theA1;
+    double theA2;
+    double theA3;
+
     [[nodiscard]] inline std::size_t getFrontsCnt() const noexcept {
         return theFronts.size();
     }

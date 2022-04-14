@@ -7,12 +7,11 @@
 
 
 namespace {
-    std::uint32_t parseLastNumber(const std::string &aLine) {
-        const std::regex myRegex(R"(.*[A-Za-z\s](\d+)\s*;\s*)");
+    std::string extractLastNumberStr(const std::string &aLine) {
+        const std::regex myRegex(R"(.*[A-Za-z\s]([\d\.]+)\s*;\s*)");
         std::smatch myMatch;
         std::regex_match(aLine, myMatch, myRegex);
-        const std::string myCountRaw = myMatch[1].str();
-        return std::stoul(myCountRaw);
+        return myMatch[1].str();
     }
 
     template<typename T>
@@ -86,13 +85,13 @@ Parameters AmplInputParser::parse(std::istream &aStream) {
     std::string myLine;
 
     REPEAT(2) std::getline(aStream, myLine); // data; set K
-    myParameters.theVehicles.resize(parseLastNumber(myLine));
+    myParameters.theVehicles.resize(std::stoul(extractLastNumberStr(myLine)));
 
     REPEAT(2) std::getline(aStream, myLine); // blank; set F
-    myParameters.theFronts.resize(parseLastNumber(myLine));
+    myParameters.theFronts.resize(std::stoul(extractLastNumberStr(myLine)));
 
     REPEAT(4) std::getline(aStream, myLine); // blank; set Q; blank; param T
-    myParameters.theTimeSlotsCount = parseLastNumber(myLine);
+    myParameters.theTimeSlotsCount = std::stoul(extractLastNumberStr(myLine));
 
     REPEAT(2) std::getline(aStream, myLine); // param V; header
     auto myIsHelicopter = parseTwoDimensionMap<int>(aStream, 2, myParameters.getVehiclesCnt());
@@ -153,6 +152,15 @@ Parameters AmplInputParser::parse(std::istream &aStream) {
             myParameters.theFronts[i].theTargetWaterContent.push_back(myTargetWaterContent[j][i]);
         }
     }
+
+    REPEAT(5) std::getline(aStream, myLine); // comment; blank; param M; blank; param a1
+    myParameters.theA1 = std::stod(extractLastNumberStr(myLine));
+
+    REPEAT(2) std::getline(aStream, myLine); // blank; param a2
+    myParameters.theA2 = std::stod(extractLastNumberStr(myLine));
+
+    REPEAT(2) std::getline(aStream, myLine); // blank; param a3
+    myParameters.theA3 = std::stod(extractLastNumberStr(myLine));
 
     if (aStream.fail()) {
         throw std::runtime_error("Failed to correctly read input");

@@ -85,6 +85,9 @@ Parameters RawInputParser::parse(std::istream &aStream) {
         }
     }
 
+    int64_t myDump;
+    aStream >> myDump >> myParameters.theA1 >> myParameters.theA2 >> myParameters.theA3;
+
     if (aStream.fail()) {
         throw std::runtime_error("Failed to correctly read input");
     }
