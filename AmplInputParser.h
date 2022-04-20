@@ -4,5 +4,5 @@
 
 class AmplInputParser : public IInputParser {
 public:
-    Parameters parse(std::istream &aStream) override;
+    Parameters parse(std::istream &aStream) const override;
 };

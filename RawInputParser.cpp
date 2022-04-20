@@ -28,7 +28,7 @@ namespace {
     }
 }
 
-Parameters RawInputParser::parse(std::istream &aStream) {
+Parameters RawInputParser::parse(std::istream &aStream) const {
     Parameters myParameters{};
 
     std::size_t myVehiclesCount;

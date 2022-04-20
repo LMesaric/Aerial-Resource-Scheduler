@@ -8,5 +8,5 @@ class IInputParser {
 public:
     virtual ~IInputParser() = default;
 
-    virtual Parameters parse(std::istream &aStream) = 0;
+    virtual Parameters parse(std::istream &aStream) const = 0;
 };

@@ -79,7 +79,7 @@ namespace {
     }
 }
 
-Parameters AmplInputParser::parse(std::istream &aStream) {
+Parameters AmplInputParser::parse(std::istream &aStream) const {
     Parameters myParameters{};
 
     std::string myLine;
