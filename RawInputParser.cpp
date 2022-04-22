@@ -16,8 +16,8 @@ namespace {
         for (auto &myVehicle: aParameters.theVehicles) {
             (myVehicle.*field).resize(aParameters.getFrontsCnt());
         }
-        for (int i = 0; i < aParameters.getFrontsCnt(); ++i) {
-            for (int j = 0; j < aParameters.theTimeSlotsCount; ++j) {
+        for (std::size_t i = 0; i < aParameters.getFrontsCnt(); ++i) {
+            for (std::size_t j = 0; j < aParameters.theTimeSlotsCount; ++j) {
                 for (auto &myVehicle: aParameters.theVehicles) {
                     T myDownload;
                     aStream >> myDownload;
@@ -47,7 +47,7 @@ Parameters RawInputParser::parse(std::istream &aStream) const {
     parseSingleParamAllVehicles(aStream, myParameters, &Vehicle::thePilotPresenceLimit);
     parseSingleParamAllVehicles(aStream, myParameters, &Vehicle::theFlightCountLimit);
 
-    for (int i = 0; i < myParameters.theTimeSlotsCount; ++i) {
+    for (std::size_t i = 0; i < myParameters.theTimeSlotsCount; ++i) {
         for (auto &myVehicle: myParameters.theVehicles) {
             bool myAvailability;
             aStream >> myAvailability;
@@ -60,7 +60,7 @@ Parameters RawInputParser::parse(std::istream &aStream) const {
     }
 
     for (auto &myVehicle: myParameters.theVehicles) {
-        for (int i = 0; i < myParameters.getFrontsCnt(); ++i) {
+        for (std::size_t i = 0; i < myParameters.getFrontsCnt(); ++i) {
             std::uint32_t myTransitTime;
             aStream >> myTransitTime;
             myVehicle.theTransitTime.push_back(myTransitTime);
@@ -79,7 +79,7 @@ Parameters RawInputParser::parse(std::istream &aStream) const {
     for (auto &myFront: myParameters.theFronts) {
         myFront.theTargetWaterContent.resize(myParameters.theTimeSlotsCount);
     }
-    for (int i = 0; i < myParameters.theTimeSlotsCount; ++i) {
+    for (std::size_t i = 0; i < myParameters.theTimeSlotsCount; ++i) {
         for (auto &myFront: myParameters.theFronts) {
             aStream >> myFront.theTargetWaterContent[i];
         }

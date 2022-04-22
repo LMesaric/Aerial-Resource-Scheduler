@@ -14,12 +14,12 @@ namespace {
     }
 
     template<typename T>
-    std::vector<T> parseOneDimensionMap(std::istream &aStream, std::uint32_t aCount) {
+    std::vector<T> parseOneDimensionMap(std::istream &aStream, std::size_t aCount) {
         std::vector<T> myVector;
         myVector.resize(aCount);
 
         std::string myDump;
-        for (int i = 0; i < aCount; ++i) {
+        for (std::size_t i = 0; i < aCount; ++i) {
             aStream >> myDump >> myVector[i];
         }
 
@@ -33,9 +33,9 @@ namespace {
         std::vector<std::vector<T>> myVector{aRowCnt, std::vector<T>(aColCnt)};
 
         std::string myDump;
-        for (int i = 0; i < aRowCnt; ++i) {
+        for (std::size_t i = 0; i < aRowCnt; ++i) {
             aStream >> myDump;
-            for (int j = 0; j < aColCnt; ++j) {
+            for (std::size_t j = 0; j < aColCnt; ++j) {
                 aStream >> myVector[i][j];
             }
         }
@@ -50,7 +50,7 @@ namespace {
         REPEAT(3) std::getline(aStream, myLine); // comment; blank; param
 
         std::vector<T> myMap = parseOneDimensionMap<T>(aStream, aParameters.getVehiclesCnt());
-        for (int i = 0; i < aParameters.getVehiclesCnt(); ++i) {
+        for (std::size_t i = 0; i < aParameters.getVehiclesCnt(); ++i) {
             aParameters.theVehicles[i].*field = myMap[i];
         }
     }
@@ -64,13 +64,13 @@ namespace {
         for (auto &myVehicle: aParameters.theVehicles) {
             (myVehicle.*field).resize(aParameters.getFrontsCnt());
         }
-        for (int i = 0; i < aParameters.getFrontsCnt(); ++i) {
+        for (std::size_t i = 0; i < aParameters.getFrontsCnt(); ++i) {
             REPEAT(2) std::getline(aStream, myLine); // blank; header
 
             auto myDownloads = parseTwoDimensionMap<T>(
                     aStream, aParameters.theTimeSlotsCount, aParameters.getVehiclesCnt());
-            for (int j = 0; j < aParameters.getVehiclesCnt(); ++j) {
-                for (int k = 0; k < aParameters.theTimeSlotsCount; ++k) {
+            for (std::size_t j = 0; j < aParameters.getVehiclesCnt(); ++j) {
+                for (std::size_t k = 0; k < aParameters.theTimeSlotsCount; ++k) {
                     (aParameters.theVehicles[j].*field)[i].push_back(myDownloads[k][j]);
                 }
             }
@@ -94,7 +94,7 @@ Parameters AmplInputParser::parse(std::istream &aStream) const {
 
     REPEAT(2) std::getline(aStream, myLine); // param V; header
     auto myIsHelicopter = parseTwoDimensionMap<int>(aStream, 2, myParameters.getVehiclesCnt());
-    for (int i = 0; i < myParameters.getVehiclesCnt(); ++i) {
+    for (std::size_t i = 0; i < myParameters.getVehiclesCnt(); ++i) {
         myParameters.theVehicles[i].theIsHelicopter = static_cast<bool>(myIsHelicopter[0][i]);
     }
 
@@ -108,7 +108,7 @@ Parameters AmplInputParser::parse(std::istream &aStream) const {
     auto myAvailability = parseTwoDimensionMap<int>(
             aStream, myParameters.theTimeSlotsCount, myParameters.getVehiclesCnt());
     for (const auto &myTimeSlot: myAvailability) {
-        for (int i = 0; i < myParameters.getVehiclesCnt(); ++i) {
+        for (std::size_t i = 0; i < myParameters.getVehiclesCnt(); ++i) {
             myParameters.theVehicles[i].theAvailability.push_back(static_cast<char>(myTimeSlot[i]));
         }
     }
@@ -116,7 +116,7 @@ Parameters AmplInputParser::parse(std::istream &aStream) const {
     REPEAT(4) std::getline(aStream, myLine); // comment; blank; param B; header
 
     auto myIsOnlyHelicopters = parseTwoDimensionMap<int>(aStream, 2, myParameters.getFrontsCnt());
-    for (int i = 0; i < myParameters.getFrontsCnt(); ++i) {
+    for (std::size_t i = 0; i < myParameters.getFrontsCnt(); ++i) {
         myParameters.theFronts[i].theIsOnlyHelicopters = static_cast<bool>(myIsOnlyHelicopters[0][i]);
     }
 
@@ -124,8 +124,8 @@ Parameters AmplInputParser::parse(std::istream &aStream) const {
 
     auto myTransitTime = parseTwoDimensionMap<std::uint32_t>(
             aStream, myParameters.getVehiclesCnt(), myParameters.getFrontsCnt());
-    for (int i = 0; i < myParameters.getVehiclesCnt(); ++i) {
-        for (int j = 0; j < myParameters.getFrontsCnt(); ++j) {
+    for (std::size_t i = 0; i < myParameters.getVehiclesCnt(); ++i) {
+        for (std::size_t j = 0; j < myParameters.getFrontsCnt(); ++j) {
             myParameters.theVehicles[i].theTransitTime.push_back(myTransitTime[i][j]);
         }
     }
@@ -134,7 +134,7 @@ Parameters AmplInputParser::parse(std::istream &aStream) const {
 
     REPEAT(3) std::getline(aStream, myLine); // comment; blank; param S
     auto mySimultaneousResourcesLimit = parseOneDimensionMap<std::uint32_t>(aStream, myParameters.getFrontsCnt());
-    for (int i = 0; i < myParameters.getFrontsCnt(); ++i) {
+    for (std::size_t i = 0; i < myParameters.getFrontsCnt(); ++i) {
         myParameters.theFronts[i].theSimultaneousResourcesLimit = mySimultaneousResourcesLimit[i];
     }
 
@@ -146,8 +146,8 @@ Parameters AmplInputParser::parse(std::istream &aStream) const {
     auto myTargetWaterContent = parseTwoDimensionMap<double>(
             aStream, myParameters.theTimeSlotsCount, myParameters.getFrontsCnt());
 
-    for (int i = 0; i < myParameters.getFrontsCnt(); ++i) {
-        for (int j = 0; j < myParameters.theTimeSlotsCount; ++j) {
+    for (std::size_t i = 0; i < myParameters.getFrontsCnt(); ++i) {
+        for (std::size_t j = 0; j < myParameters.theTimeSlotsCount; ++j) {
             myParameters.theFronts[i].theTargetWaterContent.push_back(myTargetWaterContent[j][i]);
         }
     }
