@@ -30,7 +30,7 @@ namespace {
 
     template<typename T>
     std::vector<std::vector<T>> parseTwoDimensionMap(
-            std::istream &aStream, std::uint32_t aRowCnt, std::uint32_t aColCnt) {
+            std::istream &aStream, std::size_t aRowCnt, std::size_t aColCnt) {
         std::vector<std::vector<T>> myVector{aRowCnt, std::vector<T>(aColCnt)};
 
         std::string myDump;
