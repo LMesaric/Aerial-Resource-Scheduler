@@ -1,6 +1,5 @@
 #include "AmplInputParser.h"
 
-#include <fstream>
 #include <regex>
 
 #define REPEAT(cnt) for (int x = 0; x < (cnt); ++x)
