@@ -1,4 +1,5 @@
-#include "InputParserFactory.h"
+#include "input_parser/InputParserFactory.h"
+#include "ParametersConverter.h"
 
 #include <CLI11.hpp>
 #include <iostream>
@@ -43,8 +44,9 @@ int main(int argc, char *argv[]) {
         myInputStream = &myFile;
     }
 
-    auto myParser = InputParserFactory(myInputFormat).getParser();
-    auto myParameters = myParser->parse(*myInputStream);
+    const auto myParser = InputParserFactory(myInputFormat).getParser();
+    const auto myParametersRaw = myParser->parse(*myInputStream);
+    const auto myParameters = convertParameters(myParametersRaw);
 
     return 0;
 }

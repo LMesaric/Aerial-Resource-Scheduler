@@ -7,16 +7,22 @@
 
 template<typename T>
 class Matrix2 {
+public:
     const std::size_t theX;
     const std::size_t theY;
 
+private:
     std::vector<T> theData{};
 
 public:
     Matrix2(const std::size_t x, const std::size_t y) :
-            theX(x), theY(y) {
+            theX{x}, theY{y} {
         theData.resize(theX * theY);
     }
+
+    Matrix2(Matrix2<T> &&) noexcept = default;
+
+    Matrix2 &operator=(Matrix2<T> &&) noexcept = default;
 
     inline T const &operator()(const std::size_t x, const std::size_t y) const {
         if (x >= theX || y >= theY) {
@@ -43,19 +49,25 @@ public:
 
 template<typename T>
 class Matrix3 {
+public:
     const std::size_t theX;
     const std::size_t theY;
     const std::size_t theZ;
 
-    const std::size_t theYZ;
-
+private:
     std::vector<T> theData{};
+
+    const std::size_t theYZ{theY * theZ};
 
 public:
     Matrix3(const std::size_t x, const std::size_t y, const std::size_t z) :
-            theX(x), theY(y), theZ(z), theYZ{theY * theZ} {
+            theX{x}, theY{y}, theZ{z} {
         theData.resize(theX * theY * theZ);
     }
+
+    Matrix3(Matrix3<T> &&) noexcept = default;
+
+    Matrix3 &operator=(Matrix3<T> &&) noexcept = default;
 
     inline const T &operator()(const std::size_t x, const std::size_t y, const std::size_t z) const {
         if (x >= theX || y >= theY || z >= theZ) {
