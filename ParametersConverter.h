@@ -23,8 +23,8 @@ Vehicle convertVehicle(const VehicleRaw &aVehicleRaw) {
             aVehicleRaw.theIntermediateDownloads.size(),
             aVehicleRaw.theIntermediateDownloads[0].size()
     };
-    for (std::size_t myFrontId = 0; myFrontId < myIntermediateDownloads.theX; ++myFrontId) {
-        for (std::size_t mySlot = 0; mySlot < myIntermediateDownloads.theY; ++mySlot) {
+    for (std::size_t myFrontId = 0; myFrontId < myIntermediateDownloads.getX(); ++myFrontId) {
+        for (std::size_t mySlot = 0; mySlot < myIntermediateDownloads.getY(); ++mySlot) {
             myIntermediateDownloads(myFrontId, mySlot) =
                     myCapacity * aVehicleRaw.theIntermediateDownloads[myFrontId][mySlot];
         }
@@ -34,8 +34,8 @@ Vehicle convertVehicle(const VehicleRaw &aVehicleRaw) {
             aVehicleRaw.theTransitDownloads.size(),
             aVehicleRaw.theTransitDownloads[0].size()
     };
-    for (std::size_t myFrontId = 0; myFrontId < myTransitDownloads.theX; ++myFrontId) {
-        for (std::size_t mySlot = 0; mySlot < myTransitDownloads.theY; ++mySlot) {
+    for (std::size_t myFrontId = 0; myFrontId < myTransitDownloads.getX(); ++myFrontId) {
+        for (std::size_t mySlot = 0; mySlot < myTransitDownloads.getY(); ++mySlot) {
             myTransitDownloads(myFrontId, mySlot) = myCapacity * aVehicleRaw.theTransitDownloads[myFrontId][mySlot];
         }
     }

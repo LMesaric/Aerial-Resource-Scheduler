@@ -7,22 +7,17 @@
 
 template<typename T>
 class Matrix2 {
-public:
-    const std::size_t theX;
-    const std::size_t theY;
-
 private:
     std::vector<T> theData{};
+
+    std::size_t theX;
+    std::size_t theY;
 
 public:
     Matrix2(const std::size_t x, const std::size_t y) :
             theX{x}, theY{y} {
         theData.resize(theX * theY);
     }
-
-    Matrix2(Matrix2<T> &&) noexcept = default;
-
-    Matrix2 &operator=(Matrix2<T> &&) noexcept = default;
 
     inline T const &operator()(const std::size_t x, const std::size_t y) const {
         if (x >= theX || y >= theY) {
@@ -33,6 +28,14 @@ public:
 
     inline T &operator()(const std::size_t x, const std::size_t y) {
         return const_cast<T &>(std::as_const(*this)(x, y));
+    }
+
+    [[nodiscard]] std::size_t getX() const {
+        return theX;
+    }
+
+    [[nodiscard]] std::size_t getY() const {
+        return theY;
     }
 
     friend std::ostream &operator<<(std::ostream &os, const Matrix2 &aMatrix) {
@@ -49,25 +52,20 @@ public:
 
 template<typename T>
 class Matrix3 {
-public:
-    const std::size_t theX;
-    const std::size_t theY;
-    const std::size_t theZ;
-
 private:
     std::vector<T> theData{};
 
-    const std::size_t theYZ{theY * theZ};
+    std::size_t theX;
+    std::size_t theY;
+    std::size_t theZ;
+
+    std::size_t theYZ{theY * theZ};
 
 public:
     Matrix3(const std::size_t x, const std::size_t y, const std::size_t z) :
             theX{x}, theY{y}, theZ{z} {
         theData.resize(theX * theY * theZ);
     }
-
-    Matrix3(Matrix3<T> &&) noexcept = default;
-
-    Matrix3 &operator=(Matrix3<T> &&) noexcept = default;
 
     inline const T &operator()(const std::size_t x, const std::size_t y, const std::size_t z) const {
         if (x >= theX || y >= theY || z >= theZ) {
@@ -78,6 +76,18 @@ public:
 
     inline T &operator()(const std::size_t x, const std::size_t y, const std::size_t z) {
         return const_cast<T &>(std::as_const(*this)(x, y, z));
+    }
+
+    [[nodiscard]] std::size_t getX() const {
+        return theX;
+    }
+
+    [[nodiscard]] std::size_t getY() const {
+        return theY;
+    }
+
+    [[nodiscard]] std::size_t getZ() const {
+        return theZ;
     }
 
     friend std::ostream &operator<<(std::ostream &os, const Matrix3 &aMatrix) {

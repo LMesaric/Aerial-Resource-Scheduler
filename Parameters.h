@@ -35,7 +35,7 @@ struct ObjectiveFunctionMultipliers {
 };
 
 struct Parameters {
-    const std::size_t theTimeSlotsCount;
+    std::size_t theTimeSlotsCount;
 
     std::vector<Front> theFronts;
     std::vector<Vehicle> theVehicles;
