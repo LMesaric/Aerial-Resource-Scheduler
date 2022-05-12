@@ -99,10 +99,10 @@ ParametersRaw AmplInputParser::parse(std::istream &aStream) const {
         myParametersRaw.theVehicles[i].theIsHelicopter = myIsHelicopter[0][i];
     }
 
-    parseSingleParamAllVehicles<std::uint32_t>(aStream, myParametersRaw, &VehicleRaw::theFlightDurationLimit);
-    parseSingleParamAllVehicles<std::uint32_t>(aStream, myParametersRaw, &VehicleRaw::theRestLimit);
-    parseSingleParamAllVehicles<std::uint32_t>(aStream, myParametersRaw, &VehicleRaw::thePilotPresenceLimit);
-    parseSingleParamAllVehicles<std::uint32_t>(aStream, myParametersRaw, &VehicleRaw::theFlightCountLimit);
+    parseSingleParamAllVehicles(aStream, myParametersRaw, &VehicleRaw::theFlightDurationLimit);
+    parseSingleParamAllVehicles(aStream, myParametersRaw, &VehicleRaw::theRestLimit);
+    parseSingleParamAllVehicles(aStream, myParametersRaw, &VehicleRaw::thePilotPresenceLimit);
+    parseSingleParamAllVehicles(aStream, myParametersRaw, &VehicleRaw::theFlightCountLimit);
 
     REPEAT(4) std::getline(aStream, myLine); // comment; blank; param A; header
 
