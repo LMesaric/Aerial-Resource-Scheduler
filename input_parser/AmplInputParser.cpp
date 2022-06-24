@@ -1,5 +1,6 @@
 #include "AmplInputParser.h"
 
+#include <iostream>
 #include <regex>
 
 #define REPEAT(cnt) for (int x = 0; x < (cnt); ++x)
@@ -46,125 +47,134 @@ namespace {
     }
 
     template<typename T>
-    void parseSingleParamAllVehicles(std::istream &aStream, ParametersRaw &aParametersRaw, T VehicleRaw::* field) {
+    void parseSingleParamAllVehicles(std::istream &aStream, InstanceRaw &anInstanceRaw, T VehicleRaw::* field) {
         std::string myLine;
         REPEAT(3) std::getline(aStream, myLine); // comment; blank; param
 
-        std::vector<T> myMap = parseOneDimensionMap<T>(aStream, aParametersRaw.getVehiclesCnt());
-        for (std::size_t i = 0; i < aParametersRaw.getVehiclesCnt(); ++i) {
-            aParametersRaw.theVehicles[i].*field = myMap[i];
+        std::vector<T> myMap = parseOneDimensionMap<T>(aStream, anInstanceRaw.getVehiclesCnt());
+        for (std::size_t i = 0; i < anInstanceRaw.getVehiclesCnt(); ++i) {
+            anInstanceRaw.theVehicles[i].*field = myMap[i];
         }
     }
 
     template<typename T>
-    void parseDownloadsAllVehicles(std::istream &aStream, ParametersRaw &aParametersRaw,
+    void parseDownloadsAllVehicles(std::istream &aStream, InstanceRaw &anInstanceRaw,
                                    std::vector<std::vector<T>> VehicleRaw::* field) {
         std::string myLine;
         REPEAT(3) std::getline(aStream, myLine); // comment; blank; param
 
-        for (auto &myVehicle: aParametersRaw.theVehicles) {
-            (myVehicle.*field).resize(aParametersRaw.getFrontsCnt());
+        for (auto &myVehicle: anInstanceRaw.theVehicles) {
+            (myVehicle.*field).resize(anInstanceRaw.getFrontsCnt());
         }
-        for (std::size_t i = 0; i < aParametersRaw.getFrontsCnt(); ++i) {
+        for (std::size_t i = 0; i < anInstanceRaw.getFrontsCnt(); ++i) {
             REPEAT(2) std::getline(aStream, myLine); // blank; header
 
             auto myDownloads = parseTwoDimensionMap<T>(
-                    aStream, aParametersRaw.theTimeSlotsCount, aParametersRaw.getVehiclesCnt());
-            for (std::size_t j = 0; j < aParametersRaw.getVehiclesCnt(); ++j) {
-                for (std::size_t k = 0; k < aParametersRaw.theTimeSlotsCount; ++k) {
-                    (aParametersRaw.theVehicles[j].*field)[i].push_back(myDownloads[k][j]);
+                    aStream, anInstanceRaw.theTimeSlotsCount, anInstanceRaw.getVehiclesCnt());
+            for (std::size_t j = 0; j < anInstanceRaw.getVehiclesCnt(); ++j) {
+                for (std::size_t k = 0; k < anInstanceRaw.theTimeSlotsCount; ++k) {
+                    (anInstanceRaw.theVehicles[j].*field)[i].push_back(myDownloads[k][j]);
                 }
             }
         }
     }
 }
 
-ParametersRaw AmplInputParser::parse(std::istream &aStream) const {
-    ParametersRaw myParametersRaw{};
+InstanceRaw AmplInputParser::parse(std::istream &aStream) const {
+    InstanceRaw myInstanceRaw{};
 
     std::string myLine;
 
-    REPEAT(2) std::getline(aStream, myLine); // data; set K
-    myParametersRaw.theVehicles.resize(std::stoul(extractLastNumberStr(myLine)));
+    bool myFailedConversion = false;
+    try {
 
-    REPEAT(2) std::getline(aStream, myLine); // blank; set F
-    myParametersRaw.theFronts.resize(std::stoul(extractLastNumberStr(myLine)));
+        REPEAT(2) std::getline(aStream, myLine); // data; set K
+        myInstanceRaw.theVehicles.resize(std::stoul(extractLastNumberStr(myLine)));
 
-    REPEAT(4) std::getline(aStream, myLine); // blank; set Q; blank; param T
-    myParametersRaw.theTimeSlotsCount = std::stoul(extractLastNumberStr(myLine));
+        REPEAT(2) std::getline(aStream, myLine); // blank; set F
+        myInstanceRaw.theFronts.resize(std::stoul(extractLastNumberStr(myLine)));
 
-    REPEAT(2) std::getline(aStream, myLine); // param V; header
-    auto myIsHelicopter = parseTwoDimensionMap<bool>(aStream, 2, myParametersRaw.getVehiclesCnt());
-    for (std::size_t i = 0; i < myParametersRaw.getVehiclesCnt(); ++i) {
-        myParametersRaw.theVehicles[i].theIsHelicopter = myIsHelicopter[0][i];
-    }
+        REPEAT(4) std::getline(aStream, myLine); // blank; set Q; blank; param T
+        myInstanceRaw.theTimeSlotsCount = std::stoul(extractLastNumberStr(myLine));
 
-    parseSingleParamAllVehicles(aStream, myParametersRaw, &VehicleRaw::theFlightDurationLimit);
-    parseSingleParamAllVehicles(aStream, myParametersRaw, &VehicleRaw::theRestLimit);
-    parseSingleParamAllVehicles(aStream, myParametersRaw, &VehicleRaw::thePilotPresenceLimit);
-    parseSingleParamAllVehicles(aStream, myParametersRaw, &VehicleRaw::theFlightCountLimit);
-
-    REPEAT(4) std::getline(aStream, myLine); // comment; blank; param A; header
-
-    auto myAvailability = parseTwoDimensionMap<bool>(
-            aStream, myParametersRaw.theTimeSlotsCount, myParametersRaw.getVehiclesCnt());
-    for (const auto &myTimeSlot: myAvailability) {
-        for (std::size_t i = 0; i < myParametersRaw.getVehiclesCnt(); ++i) {
-            myParametersRaw.theVehicles[i].theAvailability.push_back(myTimeSlot[i]);
+        REPEAT(2) std::getline(aStream, myLine); // param V; header
+        auto myIsHelicopter = parseTwoDimensionMap<bool>(aStream, 2, myInstanceRaw.getVehiclesCnt());
+        for (std::size_t i = 0; i < myInstanceRaw.getVehiclesCnt(); ++i) {
+            myInstanceRaw.theVehicles[i].theIsHelicopter = myIsHelicopter[0][i];
         }
-    }
 
-    REPEAT(4) std::getline(aStream, myLine); // comment; blank; param B; header
+        parseSingleParamAllVehicles(aStream, myInstanceRaw, &VehicleRaw::theFlightDurationLimit);
+        parseSingleParamAllVehicles(aStream, myInstanceRaw, &VehicleRaw::theRestLimit);
+        parseSingleParamAllVehicles(aStream, myInstanceRaw, &VehicleRaw::thePilotPresenceLimit);
+        parseSingleParamAllVehicles(aStream, myInstanceRaw, &VehicleRaw::theFlightCountLimit);
 
-    auto myIsOnlyHelicopters = parseTwoDimensionMap<bool>(aStream, 2, myParametersRaw.getFrontsCnt());
-    for (std::size_t i = 0; i < myParametersRaw.getFrontsCnt(); ++i) {
-        myParametersRaw.theFronts[i].theIsOnlyHelicopters = myIsOnlyHelicopters[0][i];
-    }
+        REPEAT(4) std::getline(aStream, myLine); // comment; blank; param A; header
 
-    REPEAT(4) std::getline(aStream, myLine); // comment; blank; param U; header
-
-    auto myTransitTime = parseTwoDimensionMap<std::uint32_t>(
-            aStream, myParametersRaw.getVehiclesCnt(), myParametersRaw.getFrontsCnt());
-    for (std::size_t i = 0; i < myParametersRaw.getVehiclesCnt(); ++i) {
-        for (std::size_t j = 0; j < myParametersRaw.getFrontsCnt(); ++j) {
-            myParametersRaw.theVehicles[i].theTransitTimes.push_back(myTransitTime[i][j]);
+        auto myAvailability = parseTwoDimensionMap<bool>(
+                aStream, myInstanceRaw.theTimeSlotsCount, myInstanceRaw.getVehiclesCnt());
+        for (const auto &myTimeSlot: myAvailability) {
+            for (std::size_t i = 0; i < myInstanceRaw.getVehiclesCnt(); ++i) {
+                myInstanceRaw.theVehicles[i].theAvailability.push_back(myTimeSlot[i]);
+            }
         }
-    }
 
-    parseSingleParamAllVehicles<std::uint32_t>(aStream, myParametersRaw, &VehicleRaw::theWaterCapacity);
+        REPEAT(4) std::getline(aStream, myLine); // comment; blank; param B; header
 
-    REPEAT(3) std::getline(aStream, myLine); // comment; blank; param S
-    auto mySimultaneousResourcesLimit = parseOneDimensionMap<std::uint32_t>(aStream, myParametersRaw.getFrontsCnt());
-    for (std::size_t i = 0; i < myParametersRaw.getFrontsCnt(); ++i) {
-        myParametersRaw.theFronts[i].theSimultaneousResourcesLimit = mySimultaneousResourcesLimit[i];
-    }
-
-    parseDownloadsAllVehicles<double>(aStream, myParametersRaw, &VehicleRaw::theIntermediateDownloads);
-    parseDownloadsAllVehicles<double>(aStream, myParametersRaw, &VehicleRaw::theTransitDownloads);
-
-    REPEAT(4) std::getline(aStream, myLine); // comment; blank; param W; header
-
-    auto myTargetWaterContent = parseTwoDimensionMap<double>(
-            aStream, myParametersRaw.theTimeSlotsCount, myParametersRaw.getFrontsCnt());
-
-    for (std::size_t i = 0; i < myParametersRaw.getFrontsCnt(); ++i) {
-        for (std::size_t j = 0; j < myParametersRaw.theTimeSlotsCount; ++j) {
-            myParametersRaw.theFronts[i].theTargetWaterContent.push_back(myTargetWaterContent[j][i]);
+        auto myIsOnlyHelicopters = parseTwoDimensionMap<bool>(aStream, 2, myInstanceRaw.getFrontsCnt());
+        for (std::size_t i = 0; i < myInstanceRaw.getFrontsCnt(); ++i) {
+            myInstanceRaw.theFronts[i].theIsOnlyHelicopters = myIsOnlyHelicopters[0][i];
         }
+
+        REPEAT(4) std::getline(aStream, myLine); // comment; blank; param U; header
+
+        auto myTransitTime = parseTwoDimensionMap<std::uint32_t>(
+                aStream, myInstanceRaw.getVehiclesCnt(), myInstanceRaw.getFrontsCnt());
+        for (std::size_t i = 0; i < myInstanceRaw.getVehiclesCnt(); ++i) {
+            for (std::size_t j = 0; j < myInstanceRaw.getFrontsCnt(); ++j) {
+                myInstanceRaw.theVehicles[i].theTransitTimes.push_back(myTransitTime[i][j]);
+            }
+        }
+
+        parseSingleParamAllVehicles<std::uint32_t>(aStream, myInstanceRaw, &VehicleRaw::theWaterCapacity);
+
+        REPEAT(3) std::getline(aStream, myLine); // comment; blank; param S
+        auto mySimultaneousResourcesLimit = parseOneDimensionMap<std::uint32_t>(aStream, myInstanceRaw.getFrontsCnt());
+        for (std::size_t i = 0; i < myInstanceRaw.getFrontsCnt(); ++i) {
+            myInstanceRaw.theFronts[i].theSimultaneousResourcesLimit = mySimultaneousResourcesLimit[i];
+        }
+
+        parseDownloadsAllVehicles<double>(aStream, myInstanceRaw, &VehicleRaw::theIntermediateDownloads);
+        parseDownloadsAllVehicles<double>(aStream, myInstanceRaw, &VehicleRaw::theTransitDownloads);
+
+        REPEAT(4) std::getline(aStream, myLine); // comment; blank; param W; header
+
+        auto myTargetWaterContent = parseTwoDimensionMap<double>(
+                aStream, myInstanceRaw.theTimeSlotsCount, myInstanceRaw.getFrontsCnt());
+
+        for (std::size_t i = 0; i < myInstanceRaw.getFrontsCnt(); ++i) {
+            for (std::size_t j = 0; j < myInstanceRaw.theTimeSlotsCount; ++j) {
+                myInstanceRaw.theFronts[i].theTargetWaterContent.push_back(myTargetWaterContent[j][i]);
+            }
+        }
+
+        REPEAT(5) std::getline(aStream, myLine); // comment; blank; param M; blank; param a1
+        myInstanceRaw.theA1 = std::stod(extractLastNumberStr(myLine));
+
+        REPEAT(2) std::getline(aStream, myLine); // blank; param a2
+        myInstanceRaw.theA2 = std::stod(extractLastNumberStr(myLine));
+
+        REPEAT(2) std::getline(aStream, myLine); // blank; param a3
+        myInstanceRaw.theA3 = std::stod(extractLastNumberStr(myLine));
+
+    } catch (...) {
+        myFailedConversion = true;
     }
 
-    REPEAT(5) std::getline(aStream, myLine); // comment; blank; param M; blank; param a1
-    myParametersRaw.theA1 = std::stod(extractLastNumberStr(myLine));
-
-    REPEAT(2) std::getline(aStream, myLine); // blank; param a2
-    myParametersRaw.theA2 = std::stod(extractLastNumberStr(myLine));
-
-    REPEAT(2) std::getline(aStream, myLine); // blank; param a3
-    myParametersRaw.theA3 = std::stod(extractLastNumberStr(myLine));
-
-    if (aStream.fail()) {
-        throw std::runtime_error("Failed to correctly read input");
+    if (aStream.fail() || myFailedConversion) {
+        const auto myErrMsg = "Failed to correctly read input";
+        std::cout << "FATAL: " << myErrMsg << std::endl;
+        throw std::runtime_error(myErrMsg);
     }
 
-    return myParametersRaw;
+    return myInstanceRaw;
 }

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Parameters.h"
-#include "input_parser/ParametersRaw.h"
+#include "Instance.h"
+#include "input_parser/InstanceRaw.h"
 
 #include <algorithm>
 
@@ -24,9 +24,9 @@ Vehicle convertVehicle(const VehicleRaw &aVehicleRaw) {
             aVehicleRaw.theIntermediateDownloads[0].size()
     };
     for (std::size_t myFrontId = 0; myFrontId < myIntermediateDownloads.getX(); ++myFrontId) {
+        auto myRow = myIntermediateDownloads[myFrontId];
         for (std::size_t mySlot = 0; mySlot < myIntermediateDownloads.getY(); ++mySlot) {
-            myIntermediateDownloads(myFrontId, mySlot) =
-                    myCapacity * aVehicleRaw.theIntermediateDownloads[myFrontId][mySlot];
+            myRow[mySlot] = myCapacity * aVehicleRaw.theIntermediateDownloads[myFrontId][mySlot];
         }
     }
 
@@ -35,8 +35,9 @@ Vehicle convertVehicle(const VehicleRaw &aVehicleRaw) {
             aVehicleRaw.theTransitDownloads[0].size()
     };
     for (std::size_t myFrontId = 0; myFrontId < myTransitDownloads.getX(); ++myFrontId) {
+        auto myRow = myTransitDownloads[myFrontId];
         for (std::size_t mySlot = 0; mySlot < myTransitDownloads.getY(); ++mySlot) {
-            myTransitDownloads(myFrontId, mySlot) = myCapacity * aVehicleRaw.theTransitDownloads[myFrontId][mySlot];
+            myRow[mySlot] = myCapacity * aVehicleRaw.theTransitDownloads[myFrontId][mySlot];
         }
     }
 
@@ -53,23 +54,23 @@ Vehicle convertVehicle(const VehicleRaw &aVehicleRaw) {
     };
 }
 
-Parameters convertParameters(const ParametersRaw &aParametersRaw) {
-    std::vector<Front> myFronts{};
-    std::transform(aParametersRaw.theFronts.begin(), aParametersRaw.theFronts.end(),
-                   std::back_inserter(myFronts),
-                   [](const FrontRaw &aFront) { return convertFront(aFront); });
-
+Instance convertInstance(const InstanceRaw &anInstanceRaw) {
     std::vector<Vehicle> myVehicles{};
-    std::transform(aParametersRaw.theVehicles.begin(), aParametersRaw.theVehicles.end(),
+    std::transform(anInstanceRaw.theVehicles.begin(), anInstanceRaw.theVehicles.end(),
                    std::back_inserter(myVehicles),
                    [](const VehicleRaw &aVehicle) { return convertVehicle(aVehicle); });
 
-    return Parameters{
-            aParametersRaw.theTimeSlotsCount,
-            std::move(myFronts),
+    std::vector<Front> myFronts{};
+    std::transform(anInstanceRaw.theFronts.begin(), anInstanceRaw.theFronts.end(),
+                   std::back_inserter(myFronts),
+                   [](const FrontRaw &aFront) { return convertFront(aFront); });
+
+    return Instance{
+            anInstanceRaw.theTimeSlotsCount,
             std::move(myVehicles),
-            aParametersRaw.theA1,
-            aParametersRaw.theA2,
-            aParametersRaw.theA3
+            std::move(myFronts),
+            anInstanceRaw.theA1,
+            anInstanceRaw.theA2,
+            anInstanceRaw.theA3
     };
 }

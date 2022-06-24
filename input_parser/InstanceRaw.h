@@ -29,7 +29,7 @@ struct VehicleRaw {
     bool theIsHelicopter;
 };
 
-struct ParametersRaw {
+struct InstanceRaw {
     std::size_t theTimeSlotsCount;
 
     std::vector<FrontRaw> theFronts;

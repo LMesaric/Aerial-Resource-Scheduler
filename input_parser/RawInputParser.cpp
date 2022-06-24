@@ -1,24 +1,28 @@
 #include "RawInputParser.h"
 
+#include <iostream>
+
 
 namespace {
     template<typename T>
-    void parseSingleParamAllVehicles(std::istream &aStream, ParametersRaw &aParametersRaw, T VehicleRaw::* field) {
-        for (auto &myVehicle: aParametersRaw.theVehicles) {
+    void parseSingleParamAllVehicles(std::istream &aStream, InstanceRaw &anInstanceRaw, T VehicleRaw::* field) {
+        for (auto &myVehicle: anInstanceRaw.theVehicles) {
             aStream >> myVehicle.*field;
         }
     }
 
     template<typename T>
-    void parseDownloadsAllVehicles(std::istream &aStream, ParametersRaw &aParametersRaw,
-                                   std::vector<std::vector<T>> VehicleRaw::* field) {
-
-        for (auto &myVehicle: aParametersRaw.theVehicles) {
-            (myVehicle.*field).resize(aParametersRaw.getFrontsCnt());
+    void parseDownloadsAllVehicles(
+            std::istream &aStream,
+            InstanceRaw &anInstanceRaw,
+            std::vector<std::vector<T>> VehicleRaw::* field
+    ) {
+        for (auto &myVehicle: anInstanceRaw.theVehicles) {
+            (myVehicle.*field).resize(anInstanceRaw.getFrontsCnt());
         }
-        for (std::size_t i = 0; i < aParametersRaw.getFrontsCnt(); ++i) {
-            for (std::size_t j = 0; j < aParametersRaw.theTimeSlotsCount; ++j) {
-                for (auto &myVehicle: aParametersRaw.theVehicles) {
+        for (std::size_t i = 0; i < anInstanceRaw.getFrontsCnt(); ++i) {
+            for (std::size_t j = 0; j < anInstanceRaw.theTimeSlotsCount; ++j) {
+                for (auto &myVehicle: anInstanceRaw.theVehicles) {
                     T myDownload;
                     aStream >> myDownload;
                     (myVehicle.*field)[i].push_back(std::move(myDownload));
@@ -28,68 +32,70 @@ namespace {
     }
 }
 
-ParametersRaw RawInputParser::parse(std::istream &aStream) const {
-    ParametersRaw myParametersRaw{};
+InstanceRaw RawInputParser::parse(std::istream &aStream) const {
+    InstanceRaw myInstanceRaw{};
 
     std::size_t myVehiclesCount;
     aStream >> myVehiclesCount;
-    myParametersRaw.theVehicles.resize(myVehiclesCount);
+    myInstanceRaw.theVehicles.resize(myVehiclesCount);
 
     std::size_t myFrontsCount;
     aStream >> myFrontsCount;
-    myParametersRaw.theFronts.resize(myFrontsCount);
+    myInstanceRaw.theFronts.resize(myFrontsCount);
 
-    aStream >> myParametersRaw.theTimeSlotsCount;
+    aStream >> myInstanceRaw.theTimeSlotsCount;
 
-    parseSingleParamAllVehicles(aStream, myParametersRaw, &VehicleRaw::theIsHelicopter);
-    parseSingleParamAllVehicles(aStream, myParametersRaw, &VehicleRaw::theFlightDurationLimit);
-    parseSingleParamAllVehicles(aStream, myParametersRaw, &VehicleRaw::theRestLimit);
-    parseSingleParamAllVehicles(aStream, myParametersRaw, &VehicleRaw::thePilotPresenceLimit);
-    parseSingleParamAllVehicles(aStream, myParametersRaw, &VehicleRaw::theFlightCountLimit);
+    parseSingleParamAllVehicles(aStream, myInstanceRaw, &VehicleRaw::theIsHelicopter);
+    parseSingleParamAllVehicles(aStream, myInstanceRaw, &VehicleRaw::theFlightDurationLimit);
+    parseSingleParamAllVehicles(aStream, myInstanceRaw, &VehicleRaw::theRestLimit);
+    parseSingleParamAllVehicles(aStream, myInstanceRaw, &VehicleRaw::thePilotPresenceLimit);
+    parseSingleParamAllVehicles(aStream, myInstanceRaw, &VehicleRaw::theFlightCountLimit);
 
-    for (std::size_t i = 0; i < myParametersRaw.theTimeSlotsCount; ++i) {
-        for (auto &myVehicle: myParametersRaw.theVehicles) {
+    for (std::size_t i = 0; i < myInstanceRaw.theTimeSlotsCount; ++i) {
+        for (auto &myVehicle: myInstanceRaw.theVehicles) {
             bool myAvailability;
             aStream >> myAvailability;
             myVehicle.theAvailability.push_back(myAvailability);
         }
     }
 
-    for (auto &myFront: myParametersRaw.theFronts) {
+    for (auto &myFront: myInstanceRaw.theFronts) {
         aStream >> myFront.theIsOnlyHelicopters;
     }
 
-    for (auto &myVehicle: myParametersRaw.theVehicles) {
-        for (std::size_t i = 0; i < myParametersRaw.getFrontsCnt(); ++i) {
+    for (auto &myVehicle: myInstanceRaw.theVehicles) {
+        for (std::size_t i = 0; i < myInstanceRaw.getFrontsCnt(); ++i) {
             std::uint32_t myTransitTime;
             aStream >> myTransitTime;
             myVehicle.theTransitTimes.push_back(myTransitTime);
         }
     }
 
-    parseSingleParamAllVehicles(aStream, myParametersRaw, &VehicleRaw::theWaterCapacity);
+    parseSingleParamAllVehicles(aStream, myInstanceRaw, &VehicleRaw::theWaterCapacity);
 
-    for (auto &myFront: myParametersRaw.theFronts) {
+    for (auto &myFront: myInstanceRaw.theFronts) {
         aStream >> myFront.theSimultaneousResourcesLimit;
     }
 
-    parseDownloadsAllVehicles(aStream, myParametersRaw, &VehicleRaw::theIntermediateDownloads);
-    parseDownloadsAllVehicles(aStream, myParametersRaw, &VehicleRaw::theTransitDownloads);
+    parseDownloadsAllVehicles(aStream, myInstanceRaw, &VehicleRaw::theIntermediateDownloads);
+    parseDownloadsAllVehicles(aStream, myInstanceRaw, &VehicleRaw::theTransitDownloads);
 
-    for (auto &myFront: myParametersRaw.theFronts) {
-        myFront.theTargetWaterContent.resize(myParametersRaw.theTimeSlotsCount);
+    for (auto &myFront: myInstanceRaw.theFronts) {
+        myFront.theTargetWaterContent.resize(myInstanceRaw.theTimeSlotsCount);
     }
-    for (std::size_t i = 0; i < myParametersRaw.theTimeSlotsCount; ++i) {
-        for (auto &myFront: myParametersRaw.theFronts) {
+    for (std::size_t i = 0; i < myInstanceRaw.theTimeSlotsCount; ++i) {
+        for (auto &myFront: myInstanceRaw.theFronts) {
             aStream >> myFront.theTargetWaterContent[i];
         }
     }
 
-    aStream >> myParametersRaw.theA1 >> myParametersRaw.theA2 >> myParametersRaw.theA3;
+    aStream >> myInstanceRaw.theA1 >> myInstanceRaw.theA2 >> myInstanceRaw.theA3;
 
     if (aStream.fail()) {
-        throw std::runtime_error("Failed to correctly read input");
+        const auto myErrMsg = "Failed to correctly read input";
+        std::cout << "FATAL: " << myErrMsg << std::endl;
+        throw std::runtime_error(myErrMsg);
     }
 
-    return myParametersRaw;
+    return myInstanceRaw;
 }

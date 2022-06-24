@@ -8,13 +8,23 @@ include_directories(include)
 add_executable(
         AerialResourceScheduler
         main.cpp
-        input_parser/ParametersRaw.h
+        input_parser/InstanceRaw.h
         input_parser/IInputParser.h
         input_parser/AmplInputParser.cpp
         input_parser/AmplInputParser.h
         input_parser/RawInputParser.cpp
         input_parser/RawInputParser.h
         input_parser/InputParserFactory.h
+        Instance.h
+        InstanceConverter.h
+        Matrix.h
+        InputFormat.h
         Parameters.h
-        ParametersConverter.h
-        Matrix.h)
+        Schedule.h
+        Objective.h
+        Greedy.h
+        Optimal.h
+        LocalSearch.h
+        Grasp.h
+        Statistics.h
+)

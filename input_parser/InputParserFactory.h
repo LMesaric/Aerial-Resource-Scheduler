@@ -2,13 +2,9 @@
 
 #include "AmplInputParser.h"
 #include "IInputParser.h"
+#include "InputFormat.h"
 #include "RawInputParser.h"
 
-
-enum InputFormat {
-    Raw,
-    Ampl
-};
 
 class InputParserFactory {
     InputFormat theInputFormat;
@@ -20,7 +16,7 @@ public:
         switch (theInputFormat) {
             case InputFormat::Raw:
                 return std::make_unique<RawInputParser>();
-            case InputFormat::Ampl:
+            default:
                 return std::make_unique<AmplInputParser>();
         }
     }
