@@ -1,0 +1,47 @@
+\chapter{Related Work}\label{chap:related-work}
+
+Several models have already been developed with the aim to assist in scheduling different resources for the purpose of maximizing the wildfire suppression.
+In~\cite{Veiga/FullScheduler}, Rodríguez-Veiga et~al.\ explore a general integer linear programming model for scheduling both aerial and ground resources, while adhering to Spanish regulations.
+They not only minimize the damage caused by the fire, but also the overall cost and the time of resource use.
+Planning is done with a time horizon of up to seven hours, and with up to 30 resources.
+It is encouraged to repeatedly run the model if a longer time horizon is headed, taking into consideration the changing conditions, instead of setting a longer planning period.
+The recommendation is not to exceed a five hour horizon.
+
+In~\cite{Veiga/AerialScheduler}, the authors introduce two integer linear programming models, which schedule only aerial resources, also according to Spanish regulations.
+They prioritize minimizing the wildfire containment time and the total flight time.
+Two tasks are performed -- assignment of aerial resources to flight routes and assignment to refueling points.
+A flight route is determined by the fire front and the water recharge point.
+The maximum number of resources that can be present at a water recharge point at one time is taken into consideration, so that the risk of collision is reduced.
+Aircraft's capabilities are specified by their carrying capacity and the number of downloads per hour that can be made for each flight route, which is considered to be the same throughout the day.
+
+The authors in~\cite{SkorinKapov/ILP} propose an updated integer linear programming model, focused only on aerial resources and large-scale wildfires.
+Note, in a larger fire with several aerial resources, planning and operations of aerial resources require dedicated emergency management~\cite{INFOCACongreso2017}.
+Furthermore, the management of aerial operations must be centralized for the entire fire to increase the safety and efficiency of operations.
+In the case of Spain, for such fires, the head of aerial operations and the aerial coordinator will assist the incident commander.
+Scheduling in~\cite{SkorinKapov/ILP} is performed for an entire day, with up to 35 resources which can perform multiple flights.
+Unlike in~\cite{Veiga/AerialScheduler}, they consider the number of downloads per hour for each time slot, to account for changing weather conditions.
+They also suggest that, in real scenarios, the lack of fuel is generally not a concern for any base.
+Aircraft have enough time to refuel during the mandatory resting periods between flights, meaning that there is no need to perform refueling point optimizations, unlike in~\cite{Veiga/AerialScheduler}. 
+Furthermore, they consider that, in reality, several water recharge points are associated with fire fronts ahead of time, removing the need to optimize flight routes.
+Contrary to previous papers, they argue that it is not a priority to minimize the monetary costs of large-scale wildfire suppression in the real-time planning phase.
+In practice, and particularly for large-scale wildfires, the extinction or incident commander estimates the aerial resources required to keep the fire under control for the next day.
+This estimate is qualitative, based on the experience and technical knowledge of both the incident commander and the personnel involved.
+Resources are then allocated according to availability.
+Note, such decision making is typically independent of cost in this phase, as public safety is the top priority, along with protection of property and natural and cultural resources.
+Once the resources are allocated for the next day, they are utilized as best as possible, according to an attack strategy decided by the incident commander and the head of aerial operations.
+
+Lastly, the approach in~\cite{SkorinKapov/ILP} aims to maintain a desired continuity of water flow over all time slots and fire areas.
+In practice, the mobilization of resources should be such that continuity of aerial work is achieved over the \textbf{entire} firefighting time period, avoiding intervals with reduced flow of water.
+An intense and numerous attack at the beginning of the day may bring the fire temporarily under control, but it may be useless if there are no aerial resources available in the rest of the day~\cite{INFOCACongreso2017}.
+Consequently, considering the full day schedule and maintaining continuity of efforts is crucial, even if changes are made dynamically according to the evolution of the fire.   
+
+As described, existing solutions most often use integer linear programming (ILP) in order to create flight schedules for various models.
+However, what they all have in common is that they are not scalable.
+The authors in~\cite{Veiga/FullScheduler} and~\cite{Veiga/AerialScheduler} only consider a time horizon of several hours, for which they need upwards of 10 minutes to solve when approximately 15 resources are scheduled.
+In~\cite{SkorinKapov/ILP}, the authors used a significantly longer planning period, with the execution time of approximately two hours for suboptimal solutions.
+Thus, such approaches may not be able to meet the imposed two hour limit when planning for the whole day is needed, not to mention the desired faster version, in many cases.
+That is especially true for larger problem instances which more accurately depict real-life efforts to extinguish large-scale wildfires.
+
+The goal of this thesis is to devise and implement an efficient heuristic search algorithm which will drastically decrease the execution time for the model proposed in Ref~\cite{SkorinKapov/ILP}.
+While for smaller instances an ILP approach can be desirable as it guarantees the optimal solution is found, for larger instances heuristic solutions are needed.
+The heuristic algorithm is meant to complement the existing ILP approach by providing a fast and effective alternative for larger instances.

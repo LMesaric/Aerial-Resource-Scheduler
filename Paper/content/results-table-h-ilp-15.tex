@@ -1,0 +1,58 @@
+\begin{landscape}
+\begin{table}[htbp]
+\footnotesize
+\caption{Comparison of heuristic (H) and ILP results for $\mathit{CF} = 15\%$}
+\label{tbl:comparison-cf-15}
+\centering
+
+\def\mygapstart{0mm}
+
+\def\someoptimal{\makebox[0pt][l]{$^{\ast}$}}
+\def\alloptimal{\makebox[0pt][l]{$^{\ast\ast}$}}
+
+\newcommand{\twoline}[2]{\begin{tabular}[c]{@{}c@{}}#1 \\ #2\end{tabular}}
+\newcommand{\diff}{\twoline{Deviation}{(no. of dls.)}}
+
+\begin{tabular}{ll<{\hspace{\mygapstart}}*{4}{|rrr}}
+\multicolumn{2}{c}{} & \multicolumn{3}{c}{NUOF + IA} & \multicolumn{3}{c}{NUOF + MUOT} & \multicolumn{3}{c}{UOF + IA} & \multicolumn{3}{c}{UOF + MUOT} \\ 
+\cmidrule(lr){3-5} \cmidrule(lr){6-8} \cmidrule(lr){9-11} \cmidrule(lr){12-14}
+{} & {} & H & ILP & \diff & H & ILP & \diff & H & ILP & \diff & H & ILP & \diff \\ \hline
+
+\multirow{3}{*}{\rotatebox[origin=c]{90}{K07\_F02}}
+& $\mathit{WS_n}$ & $-173$\someoptimal & $\pmb{-173}$\alloptimal & $0.000$ & $-238$\someoptimal & $\pmb{-235}$\alloptimal & $-0.001$ & $-189$\someoptimal & $\pmb{-189}$\alloptimal & $0.000$ & $\pmb{-30}$\alloptimal & $-30$\alloptimal & $0.000$ \\ 
+& $\mathit{Z}$ & $-62$\someoptimal & $\pmb{-51}$\alloptimal & $-0.004$ & $-47$\someoptimal & $\pmb{-58}$\alloptimal & $0.004$ & $-83$\someoptimal & $\pmb{-59}$\alloptimal & $-0.008$ & $\pmb{171}$\alloptimal & $171$\alloptimal & $0.000$ \\ 
+& $\mathit{WO}$ & $468188$\someoptimal & $\pmb{468607}$\alloptimal & $-0.140$ & $484432$\someoptimal & $\pmb{483953}$\alloptimal & $0.159$ & $468851$\someoptimal & $\pmb{464343}$\alloptimal & $1.503$ & $\pmb{428983}$\alloptimal & $427730$\alloptimal & $0.418$ \\ \hline
+
+\multirow{3}{*}{\rotatebox[origin=c]{90}{K10\_F03}}
+& $\mathit{WS_n}$ & $-133$\someoptimal & $\pmb{-98}$\alloptimal & $-0.012$ & $-126$\someoptimal & $\pmb{-37}$\alloptimal & $-0.031$ & $-208$\someoptimal & $\pmb{-136}$\alloptimal & $-0.025$ & $-168$\someoptimal & $\pmb{-90}$\someoptimal & $-0.028$ \\ 
+& $\mathit{Z}$ & $7$\someoptimal & $\pmb{154}$\alloptimal & $-0.052$ & $-21$\someoptimal & $\pmb{111}$\alloptimal & $-0.047$ & $-29$\someoptimal & $\pmb{107}$\alloptimal & $-0.048$ & $-64$\someoptimal & $\pmb{54}$\someoptimal & $-0.042$ \\ 
+& $\mathit{WO}$ & $687429$\someoptimal & $\pmb{685224}$\alloptimal & $0.783$ & $700775$\someoptimal & $\pmb{690004}$\alloptimal & $3.823$ & $678180$\someoptimal & $\pmb{677711}$\alloptimal & $0.166$ & $701048$\someoptimal & $\pmb{693559}$\someoptimal & $2.659$ \\ \hline
+
+\multirow{3}{*}{\rotatebox[origin=c]{90}{K15\_F03}}
+& $\mathit{WS_n}$ & $\pmb{0}$ & $0$ & $0.000$ & $\pmb{0}$ & $0$ & $0.000$ & $\pmb{0}$ & $0$ & $0.000$ & $\pmb{0}$ & $0$ & $0.000$ \\ 
+& $\mathit{Z}$ & $\pmb{500}$ & $485$ & $0.005$ & $\pmb{550}$ & $485$ & $0.023$ & $\pmb{507}$ & $456$ & $0.018$ & $\pmb{554}$ & $413$ & $0.050$ \\ 
+& $\mathit{WO}$ & $\pmb{954880}$ & $922474$ & $11.459$ & $\pmb{934539}$ & $932870$ & $0.590$ & $\pmb{938814}$ & $937418$ & $0.493$ & $\pmb{913906}$ & $895341$ & $6.565$ \\ \hline
+
+\multirow{3}{*}{\rotatebox[origin=c]{90}{K20\_F04}}
+& $\mathit{WS_n}$ & $\pmb{0}$ & $0$ & $0.000$ & $\pmb{-26}$ & $-26$ & $0.000$ & $\pmb{0}$ & $-63$ & $0.023$ & $\pmb{-44}$ & $-92$ & $0.018$ \\ 
+& $\mathit{Z}$ & $\pmb{819}$ & $528$ & $0.108$ & $\pmb{465}$ & $182$ & $0.105$ & $\pmb{752}$ & $297$ & $0.169$ & $\pmb{515}$ & $132$ & $0.142$ \\ 
+& $\mathit{WO}$ & $\pmb{1289480}$ & $1304870$ & $-5.715$ & $\pmb{1273218}$ & $1227526$ & $16.968$ & $\pmb{1325138}$ & $1292050$ & $12.288$ & $\pmb{1274888}$ & $1254996$ & $7.387$ \\ \hline
+
+\multirow{3}{*}{\rotatebox[origin=c]{90}{K25\_F04}}
+& $\mathit{WS_n}$ & $\pmb{0}$ & $-1004$ & $0.370$ & $\pmb{0}$ & $-37$ & $0.013$ & $\pmb{0}$ & $0$ & $0.000$ & $\pmb{0}$ & $-246$ & $0.091$ \\ 
+& $\mathit{Z}$ & $\pmb{998}$ & $-450$ & $0.534$ & $\pmb{1031}$ & $234$ & $0.294$ & $\pmb{1250}$ & $616$ & $0.234$ & $\pmb{988}$ & $81$ & $0.335$ \\ 
+& $\mathit{WO}$ & $\pmb{1557007}$ & $1556972$ & $0.013$ & $\pmb{1624811}$ & $1624768$ & $0.016$ & $\pmb{1625807}$ & $1594114$ & $11.688$ & $\pmb{1653663}$ & $1573720$ & $29.482$ \\ \hline
+
+\multirow{3}{*}{\rotatebox[origin=c]{90}{K30\_F05}}
+& $\mathit{WS_n}$ & $\pmb{0}$ & $-6531$ & $2.389$ & $\pmb{0}$ & $-2345$ & $0.858$ & $\pmb{0}$ & $-2362$ & $0.864$ & $\pmb{0}$ & $-1614$ & $0.590$ \\ 
+& $\mathit{Z}$ & $\pmb{1247}$ & $-632$ & $0.687$ & $\pmb{1122}$ & $-571$ & $0.619$ & $\pmb{1087}$ & $-627$ & $0.627$ & $\pmb{1024}$ & $-479$ & $0.550$ \\ 
+& $\mathit{WO}$ & $\pmb{1935023}$ & $1751826$ & $67.010$ & $\pmb{1876768}$ & $1744786$ & $48.277$ & $\pmb{1907201}$ & $1714092$ & $70.636$ & $\pmb{1889009}$ & $1765286$ & $45.256$ \\ \hline
+
+\multirow{3}{*}{\rotatebox[origin=c]{90}{K35\_F05}}
+& $\mathit{WS_n}$ & $\pmb{0}$ & $-18018$ & $6.573$ & $\pmb{0}$ & $-5629$ & $2.054$ & $\pmb{0}$ & $-8425$ & $3.073$ & $\pmb{0}$ & $-6110$ & $2.229$ \\ 
+& $\mathit{Z}$ & $\pmb{910}$ & $-2455$ & $1.228$ & $\pmb{1010}$ & $-901$ & $0.697$ & $\pmb{1201}$ & $-1953$ & $1.151$ & $\pmb{1220}$ & $-1245$ & $0.899$ \\ 
+& $\mathit{WO}$ & $\pmb{2085463}$ & $1777452$ & $112.356$ & $\pmb{2087712}$ & $2017826$ & $25.493$ & $\pmb{2363235}$ & $2211200$ & $55.459$ & $\pmb{2284475}$ & $2027012$ & $93.917$ \\
+
+\end{tabular}
+\end{table}
+\end{landscape}

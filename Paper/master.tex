@@ -1,0 +1,80 @@
+\PassOptionsToPackage{nottoc, notlof, notlot}{tocbibind}
+\documentclass[times, utf8, numeric, diplomski]{fer}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amsbsy}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage[bottom]{footmisc}
+\usepackage[hidelinks]{hyperref}
+\usepackage{listings}
+\usepackage{lscape}
+\usepackage{multirow}
+\usepackage{siunitx}
+\usepackage{tabularx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{xurl}
+
+\let\oldemptyset\emptyset
+\let\emptyset\varnothing
+
+\definecolor{backcolor}{rgb}{0.985,0.985,0.97}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\lstdefinestyle{appendix-file-style}{
+    breaklines=true,
+    keepspaces=true,
+    frame=trBL,
+    rulecolor=\color{black},
+    tabsize=4,
+    basicstyle=\fontsize{7.5pt}{7.6pt}\selectfont\ttfamily,
+    backgroundcolor=\color{backcolor},
+    numbers=left,
+    numberstyle=\tiny\color{codegray},
+}
+
+\begin{document}
+
+\thesisnumber{3010}
+
+\title{A Heuristic Algorithm for Scheduling Aerial Resources for the Extinction of Large-scale Wildfires}
+\crotitle{Heuristički algoritam za raspoređivanje zračnih resursa tijekom gašenja šumskih požara velikih razmjera}
+
+\author{Luka Mesarić}
+
+\maketitle
+
+\izvornik
+
+\zahvala{\\ \centerline{Thanks to my family, friends, and mentors.}}
+
+\tableofcontents
+
+\listoftables
+\listoffigures
+\listofalgorithms
+% \addcontentsline{toc}{chapter}{List of Algorithms}
+
+\input{content/introduction}
+\input{content/related-work}
+\input{content/problem-definition}
+\input{content/heuristic}
+\input{content/implementation}
+\input{content/test-scenarios}
+\input{content/results}
+\input{content/future-work}
+\input{content/conclusion}
+
+\renewcommand\bibname{References}
+\bibliographystyle{ieeetr}
+\bibliography{literature}
+
+\appendix
+\input{content/example-input-file-ampl}
+\input{content/example-input-file-simple}
+\input{content/example-output-file}
+
+\input{content/abstract}
+
+\end{document}

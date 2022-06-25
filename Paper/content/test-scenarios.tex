@@ -1,0 +1,179 @@
+\chapter{Test Scenarios}\label{chap:test-scenarios}
+
+Because the model described in this thesis was designed in Ref~\cite{SkorinKapov/ILP}, and at the time of writing no other research was done relating to that specific model, there are no standard benchmark datasets available other than those used in Ref~\cite{SkorinKapov/ILP}.
+They were programmatically generated, and the same generator, albeit with different parameters, was used in this thesis.
+The test scenarios are generated in a way that respects Spanish regulations~\cite{Spain/AnnexCircular}.
+Parameter values have similarities with those of real aerial resources and real situations, but do not portray any specific wildfire.
+
+
+\section{General Parameter Values}
+
+It is assumed that daylight hours are between 7:00 and 22:00, which is representative of a typical summer day in Spain.
+This results in 15 hours of daytime, split into 45 time slots, each 20 minutes long: $\mathcal{T} = \left\{ 1, \ldots, 45 \right\}$.
+
+Test scenarios come in seven different sizes with respect to the number of aerial resources and fire fronts.
+Helicopters make up around $65\%$ of all aerial resources, and airplanes account for the remaining $35\%$.
+Helicopters are further divided into light, medium, heavy and military categories, with approximately $50\%$, $20\%$, $20\%$, and $10\%$ shares, respectively.
+The exact numbers are depicted in Table~\ref{tbl:scenario-sizes}.
+
+\begin{table}[htb]
+\caption{Sizes of test scenarios and the number of aircraft per subtype}
+\label{tbl:scenario-sizes}
+\centering
+\footnotesize
+\begin{tabular}{lrr|*5r}
+Scenario & Aircraft & Fronts & Light h. & Medium h. & Heavy h. & Military h. & Airplanes \\
+\midrule
+K07\_F02 & 7  & 2 & 2  & 1 & 1 & 0 & 3  \\
+K10\_F03 & 10 & 3 & 3  & 1 & 1 & 1 & 4  \\
+K15\_F03 & 15 & 3 & 5  & 2 & 2 & 0 & 6  \\
+K20\_F04 & 20 & 4 & 7  & 3 & 3 & 0 & 7  \\
+K25\_F04 & 25 & 4 & 8  & 3 & 3 & 2 & 9  \\
+K30\_F05 & 30 & 5 & 10 & 4 & 4 & 1 & 11 \\
+K35\_F05 & 35 & 5 & 11 & 4 & 4 & 3 & 13 \\
+\end{tabular}
+\end{table}
+
+Fronts on which airplanes cannot operate are considered to be uncommon -- parameter $B_f$.
+There is a $20\%$ chance a test scenario is selected to contain such a front.
+If it is selected, a single random front is picked as the one on which only helicopters can operate, while others remain open for airplanes.
+
+The maximum number of aircraft in a carousel, $S_f$, is chosen at random for each fire front, with values in range $[7, 10]$.
+The size of an instance has no effect on the size of the carousel as that is determined by the terrain features, such as the number of water points and the size of the fire front.
+The carousel size has to be limited so that airspace does not become congested, which increases the risk of a collision.
+
+The Spanish regulations impose a limit on maximum continuous flight time -- parameter $T_k$.
+For helicopters that limit is two hours, and for airplanes it is four hours~\cite{Spain/AnnexCircular}.
+Legislation also imposes the minimum duration of resting periods between continuous flights -- parameter $R_k$.
+In case of helicopters the breaks must be at least 40 minutes, and for airplanes it is at least 80 minutes.
+Furthermore, helicopters can make at most four flights in a single day, while airplanes have a lower limit of just two flights per day -- parameter $N_k$.
+Regulations limit pilot presence to 12 continuous hours, regardless of aircraft type -- parameter $P_k$.
+
+With respect to availability, $A_k^t$, helicopters are assumed available in all time slots, as they tend to remain in proximity to the fire, and usually do not come from faraway bases.
+For airplanes, it is considered that at the start of the day they might have to fly in from a further base where they were previously located, or return to it at the end of the day, perhaps to fight another wildfire the following day.
+An example of the distribution of airplanes across different bases is shown in Figure~\ref{fig:spain-airplanes-deployment}.
+The availability is as follows:
+\begin{itemize}
+    \item $85\%$ chance the airplane is available throughout the entire day,
+    \item $10\%$ chance it is unavailable at the beginning of the day, with unavailability ending between 10:20 and 13:00,
+    \item $5\%$ chance it is unavailable at the end of the day, with unavailability starting between 18:20 and 20:00.
+\end{itemize}
+In case an airplane was unavailable for a part of the day, one flight is deducted from the available daily quota, with the reason being that it was spent on transit between bases of operation.
+Consequently, one airplane cannot be unavailable both in the morning and in the evening, as deducting two flights would leave it without any flights to spend fighting the fire.
+
+All helicopters are assumed to be able to reach any front within a single time slot -- parameter $U_{kf}$ is given value $0$.
+This is because helicopters are more flexible with respect to takeoff and landing and can thus depart from and return to a larger set of destinations (airports, bases, fields, or even parking lots) which are typically within 20~minutes of the fire~\cite{INFOCACongreso2017}.
+On the other hand, airplanes require a runway, so the choice of bases is limited.
+Furthermore, longer transit times are less of an issue for airplanes because of their longer maximum flight duration.
+For those reasons, the value of parameter $U_{kf}$ is randomly set to $0$, $1$, or $2$ for every airplane.
+Whichever value is selected, it is the same for all fronts.
+
+\begin{table}[htb]
+\caption{Water capacities and average drops per hour for each aircraft subtype}
+\label{tbl:capacity-and-droprate}
+\centering
+\small
+\begin{tabular}{lrrl}
+Aircraft subtype    & Capacity ($C_k$) & Avg. drops & Aircraft models \\
+\midrule
+Light helicopter    & \SI{900}{\liter}  & $5$ & AS350B3, A119 Koala \\
+Medium helicopter   & \SI{1500}{\liter} & $5$ & Bell 412, W-3 Sokół \\
+Heavy helicopter    & \SI{4500}{\liter} & $4$ & Kamov Ka-32 \\
+Military helicopter & \SI{2100}{\liter} & $5$ & AS332 Super Puma, NH90 \\
+Airplane            & \SI{5500}{\liter} & $3$ & CL-215, CL-415 \\
+\end{tabular}
+\end{table}
+
+The water capacity and average drops per time slot for each model aircraft are derived from their real-life counterparts~\cite{Frias/Capacities, Sanz/Helicopters, Merida/Evaluation}, and according to data provided by the 43rd Group of the Spanish Air Force.
+Values are shown in Table \ref{tbl:capacity-and-droprate}.
+The exact number of drops per time slot depends on the features of the front and the time of day.
+On some fire fronts the water points could be farther away from the actual fire which in turn lowers the effectiveness and the number of drops that can be made in the same amount of time~\cite{Merida/Evaluation}.
+Different weather conditions throughout the day, such as increased wind speed, could also reduce the effectiveness of aerial resources.
+For testing purposes, each fire front is given a random accessibility rating between $0.8$ and $1.2$ which is used as a weighting factor for the average drops per time slot (Table \ref{tbl:capacity-and-droprate}), resulting in the drops per firefighting time slot -- parameter $D_{kf}^t$.
+Between 15:00 and 18:00 the drops are reduced by $5\%$ to simulate worse weather conditions.
+As for hybrid time slots, $E_{kf}^t$, drops per time slot are selected to be equal to between $0\%$ and $50\%$ of their firefighting counterpart, with up to $5\%$ variation between fronts.
+That is to simulate the fact that aircraft spend some of the time in transit, as opposed to exclusively fighting the fire.
+
+
+\section{Distribution of the Target Water Content}\label{sec:water-distribution}
+
+\textit{Total water capacity} (TWC) is estimated by multiplying the maximum number of firefighting time slots for all flights, with the amount of water dropped in an average firefighting time slot, summed across all aircraft.
+While the total water output $\mathit{WO}$ will approach TWC when resources are scheduled according to their strengths, the distribution of water output over time and fronts is highly unlikely to be uniform, or otherwise desirable.
+In order to set accomplishable goals with respect to the target water content, a different metric has to be used.
+
+\textit{Corrected total water capacity} (CTWC) is calculated by multiplying TWC with the \textit{correction factor} $\mathit{CF}$ -- a value between $0\%$ and $100\%$.
+CTWC is used as a guideline on what the sum of the target water content should be for the generated instance -- parameter $W_f^t$.
+Two types of categories are used to determine the distribution of water content -- \textit{distribution over time} (DOT) and \textit{distribution over fronts} (DOF).
+Distribution over time can be either \textit{initial attack} (IA) or \textit{mostly uniform over time} (MUOT).
+Distribution over fronts can be either \textit{uniform over fronts} (UOF) or \textit{non-uniform over fronts} (NUOF).
+Categories are combined, giving a total of four possible distributions.
+
+UOF splits CTWC equally over all fronts, whereas NUOF splits it unevenly.
+For example, in case of two fire fronts NUOF will delegate $65\%$ of CTWC to the first front, and $35\%$ to the second.
+It is used to simulate the fact that some fronts are often more important than others.
+That could be the case for a number of reasons, such as the sheer size of the wildfire on that front, requiring more resources to contain it, or perhaps the fact that some front is closer to an inhabited area and needs to be prioritized.
+
+Selected DOT further distributes the delegated water content across time slots.
+IA will uniformly distribute $60\%$ of the water over time slots in the first six hours of the day, and the remaining water across the remaining time slots.
+MUOT will either distribute the water completely uniformly, or will assign about $15\%$ more water to the time slots between 13:00 and 18:20, for example to simulate stronger winds which increase the risk of the fire spreading.
+
+The first and last time slots of the day are always assigned $75\%$ lower targets.
+This is because all aircraft have to either start or end those time slot in their base, i.e., no flight can be in a dedicated firefighting state at those moments.
+Because of the nature of the problem, aircraft have very limited suppression capabilities in those time slots.
+Setting high targets in the first and last slots would require many resources to be deployed both early and late in the day in order to meet those targets, leaving fewer available flights throughout the bulk of the day, and severely hindering the total suppression efforts.
+Reducing those targets allows us to meet them more easily, and $75\%$ empirically showed to be a good reduction factor.
+
+
+\section{Weighting Factors}
+
+\begin{table}[htb]
+\caption{Effects of $a_2$ on negative water surplus}
+\label{tbl:weighting-comparison}
+\centering
+\begin{tabular}{@{}*8r@{}}
+~ & ~ & \multicolumn{2}{c}{2 slots} & \multicolumn{2}{c}{3 slots} & \multicolumn{2}{c}{10 slots} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
+$a_2$ & Objective & Per slot & Total & Per slot & Total & Per slot & Total \\
+\midrule
+$0.01$  & $-1.01$  & $-0.502$ & $-1.005$ & $-0.336$ & $-1.007$ & $-0.101$ & $-1.009$ \\
+$0.10$  & $-1.10$  & $-0.524$ & $-1.048$ & $-0.355$ & $-1.065$ & $-0.109$ & $-1.089$ \\
+$0.50$  & $-1.50$  & $-0.600$ & $-1.200$ & $-0.429$ & $-1.286$ & $-0.143$ & $-1.429$ \\
+$1.00$  & $-2.00$  & $-0.667$ & $-1.333$ & $-0.500$ & $-1.500$ & $-0.182$ & $-1.818$ \\
+$2.00$  & $-3.00$  & $-0.750$ & $-1.500$ & $-0.600$ & $-1.800$ & $-0.250$ & $-2.500$ \\
+$10.00$ & $-11.00$ & $-0.917$ & $-1.833$ & $-0.846$ & $-2.538$ & $-0.550$ & $-5.500$ \\
+\end{tabular}
+\end{table}
+
+Weighting factors used in Equation \ref{eq:objective} play an important role in determining the real-life effectiveness of the aerial resources.
+As was previously mentioned in Section \ref{sec:objective}, the total water output is not necessarily a good measure of effectiveness, which is the reason why $a_3$ should be several orders of magnitude smaller than factors $a_1$ and $a_2$.
+Additionally, total water output is usually measured in millions of litres of water, so a low value of $a_3$ is needed to bring down the scale.
+
+The question which needs to be answered is what constitutes a \textit{good value} for $a_2$, relative to $a_1$.
+As an example, if the schedule quality is only dictated by the total negative water surplus, then having a single time slot with negative surplus equal to $-10\,000$ L would be considered equal to having ten time slots with negative surplus of $-1\,000$ L.
+However, from a fire suppression perspective, it is clearly beneficial to spread out the negative water surplus over multiple time slots, even at the cost of a higher negative water surplus.
+In case a solution which meets all water content targets can be found, then the relative value of $a_1$ and $a_2$ becomes irrelevant, because at that point $a_1$ will be multiplied by zero in the objective function.
+
+Table \ref{tbl:weighting-comparison} analyzes different values of the factor $a_2$.
+The goal is to illustrate how negative water surplus can change, even though the objective function value stays the same.
+It is assumed that $a_1 = 1$, and total water output is ignored for simplicity, as it would have minimal impact.
+It is also assumed that all other time slots have their targets satisfied, except for the number of slots written in the header, which will be denoted by $N$.
+The negative water surplus per slot is considered to be the same, in order to explore the worst-case scenario with respect to the total negative water surplus, and will be denoted by $\mathit{ws}$.
+Consequently, the minimal water surplus is also equal to $\mathit{ws}$.
+The reference value is a single unsatisfied time slot ($N = 1$) with the water surplus $\mathit{ws} = -1.00$, which is also the total negative surplus.
+The reference objective function values, displayed in the second column, are calculated using Equation \ref{eq:a2-surplus}, which is derived from Equation \ref{eq:objective}.
+The same equation can then be used to calculate $\mathit{ws}$ for $N \in \left\{ 2, 3, 10 \right\}$, which can be found in the \textit{per slot} columns.
+Values in the columns labeled \textit{total} represent the total negative water surplus, which is equal to $N \cdot \mathit{ws}$.
+\begin{equation}\label{eq:a2-surplus}
+\begin{split}
+\mathit{objective} &= a_1 \cdot \mathit{ws} \cdot N + a_2 \cdot \mathit{ws} \\
+                   &= \mathit{ws} \cdot (N + a_2)
+\end{split}
+\end{equation}
+
+The goal is to strike a balance between not being concerned about the distribution of the negative surplus, and punishing the outliers so much that the end result could have a significantly higher negative surplus.
+Taking an example from the Table \ref{tbl:weighting-comparison} for $a_2 = 10.00$, it can be seen that we could end up with more than five times higher negative water surplus for the same objective function value.
+On the other hand, using $a_2 = 0.01$ or lower will barely make a difference in the preferred distribution of negative water surplus, as expected.
+
+The decision ultimately comes down to the end user's choice for a particular problem instance, depending on what is prioritized.
+For an average problem instance, a good balance of weighting factors could be $a_1 = 1$, $a_2 = 1$, $a_3 = 10^{-4}$.
+However, in order to significantly simplify result comparisons with the solver used in Ref~\cite{SkorinKapov/ILP}, only the following parameters will be used in this paper: $a_1 = 10^7$, $a_2 = 10^2$, $a_3 = 10^{-4}$.

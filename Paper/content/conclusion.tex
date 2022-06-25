@@ -1,0 +1,18 @@
+\chapter{Conclusion}
+
+In this thesis, we devise and implement a fast heuristic search algorithm for efficient scheduling of aerial resources, namely helicopters and airplanes, in order to maximize the wildfire suppression via aerial firefighting.
+The focus is put on tackling large-scale wildfires divided into multiple fire fronts, where a total of approximately 20 or more aerial resources are involved.
+Furthermore, Spanish aviation regulations are taken into consideration, as well as limitations on the number and type of aircraft allowed to fly at one front at the same time.
+
+The parallelized heuristic algorithm is based on the greedy randomized adaptive search procedure (GRASP) combined with large neighborhood search and simulated annealing, thus efficiently navigating a vast solution space in polynomial time complexity.
+The implementation is done in the C++ programming language in order to achieve maximum performance.
+
+The heuristic algorithm is evaluated on a set of 420 test instances, divided into 84 scenarios with varying size and distribution of the target water content.
+Compared to the integer linear programming (ILP) model, executed with a time limit of two hours, the heuristic algorithm consistently obtains solutions of substantially higher quality in a fraction of the time, especially in case of large and very large scenarios, as well as scenarios with increased target water content.
+For smaller scenarios, the heuristic algorithm regularly finds near-optimal solutions.
+Furthermore, it found optimal solutions in $75\%$ of instances for which ILP also reported finding the optimal solution.
+Unlike the ILP approach, the heuristic algorithm is highly scalable, running in under 15 seconds per GRASP iteration for every test instance, and under five minutes for the entire search procedure, while using approximately 100 times less memory than the ILP solver.
+
+Very promising performance of the heuristic algorithm makes it an excellent alternative for the ILP approach.
+
+The source code and all other relevant materials are made available in a public \textit{GitHub} repository: \small{\url{https://github.com/LMesaric/MSc-Thesis-FER-2022}}.

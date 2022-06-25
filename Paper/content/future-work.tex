@@ -1,0 +1,48 @@
+\chapter{Future Work}
+
+As is the case for many models, and especially heuristic algorithms, there is room for improvement.
+A number of potential modifications is presented, which should all lead to improved solution quality in terms of the objective function value and/or fire suppression effectiveness in real scenarios.
+
+
+\section{Model}
+
+If permitted by legislation, the model could be extended to allow for flights with long transit times to start or end at night-time.
+This could greatly help with alleviating the problem of unsatisfied target water content in the first and last slot of the day.
+
+The objective function could be changed to better reflect the need for a uniform distribution of the water surplus.
+The original objective function presented in Equation \ref{eq:objective} does not address how the negative water surplus is distributed over fronts.
+One option could be to use Equation \ref{eq:alternative-objective-squared} as the objective function:
+\begin{equation}\label{eq:alternative-objective-squared}
+\max \left( - a_1 \cdot \sum_{f \in \mathcal{F}} \left( \sum_{t \in \mathcal{T}} \min ( \mathit{WS}_{tf}, 0 ) \right) ^ 2
+    + a_2 \cdot Z
+    + a_3 \cdot \mathit{WO} \right)
+\end{equation}
+By grouping the negative water surplus for each front and squaring the sum, the value of the objective function would be lower if the same amount of negative water surplus was concentrated on fewer fronts.
+Another option could be to minimize the variance of water surplus.
+However, if precautions are not taken, it could result in reduced total water output and overall worse solutions.
+A downside of described modifications is that the model stops being linear, but that should not be a hurdle for a heuristic algorithm.
+
+Furthermore, water surplus could be measured as a percentage of the water target for every slot, instead of an absolute value.
+That would help with disproportionate neglect of fire fronts which require less water, as the punishment would be greater.
+
+Lastly, it is reasonable to assume that having negative water surplus in consecutive time slots is worse than if it were sporadically spread throughout the day, with all other things being equal.
+Grouped negative water surplus will be detrimental to the suppression efforts because the wildfire will have a bigger time window in which it can spread, possibly requiring more resources than expected in the future.
+It would be beneficial to have penalties incorporated into the objective function for such consecutive shortfalls.
+
+
+\section{Heuristic Algorithm}
+
+Tabu search was often successfully employed in scheduling problems~\cite{Brandimarte/TS}\cite{Dell/TS}.
+Combining tabu search with the existing algorithm could help it escape local optima.
+For example, takeoffs which were inserted as a part of the \textit{repair} process are entered into the tabu list.
+The \textit{destroy} method is then not allowed to remove any takeoff which is in the tabu list.
+The tabu tenure would have to be added as a new hyperparameter.
+In a similar effort, guided local search could be used to modify the parameters as the search progresses~\cite{Voudouris/GLS}.
+
+In the \textit{destroy} method of large neighborhood search it might be beneficial to find potential takeoffs which could significantly improve the value of the objective function, but are blocked.
+However, if they are blocked only by one or two existing takeoffs, then those takeoffs could be removed and repairs conducted as usual.
+That would make the search more directed at the expense of more complicated implementation.
+Specifically, for every potential takeoff we would need to cache which takeoffs are blocking it.
+
+While building the initial greedy solution, perhaps it is beneficial to forcefully assign flights which meet the requirements of the first and last time slots.
+It is not certain that in the optimal solution those slots will indeed have their requirements met, but it might be a reasonable starting move.

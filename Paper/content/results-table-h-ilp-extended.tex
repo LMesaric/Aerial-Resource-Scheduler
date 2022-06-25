@@ -1,0 +1,49 @@
+\begin{table}[htbp]
+\footnotesize
+\caption{Comparison of heuristic (H) and ILP results with extended execution time}
+\label{tbl:comparison-extended}
+\centering
+
+\def\mygapstart{2mm}
+\def\mygapmid{4mm}
+
+\newcommand{\twoline}[2]{\begin{tabular}[c]{@{}c@{}}#1 \\ #2\end{tabular}}
+\newcommand{\diff}{\twoline{Deviation}{(no. of dls.)}}
+
+\begin{tabular}{
+    ll
+    <{\hspace{\mygapstart}}|>{\hspace{\mygapstart}}
+    *3r
+    <{\hspace{\mygapmid}}|>{\hspace{\mygapmid}}
+    *3r
+}
+\multicolumn{2}{c}{} & \multicolumn{3}{c}{$\mathit{CF} = 15\%$} & \multicolumn{3}{c}{$\mathit{CF} = 50\%$} \\ 
+\cmidrule(l{\mygapstart}r{\mygapmid}){3-5} \cmidrule(l{\mygapmid}r){6-8}
+{} & {} & H & ILP & \diff & H & ILP & \diff \\ \hline
+
+\multirow{3}{*}{\rotatebox[origin=c]{90}{K15\_F03}}
+& $\mathit{WS_n}$ & $0$ & $\pmb{0}$ & $0.00$ & $\pmb{-1357}$ & $-1653$ & $0.10$ \\ 
+& $\mathit{Z}$ & $564$ & $\pmb{638}$ & $-0.03$ & $\pmb{-545}$ & $-545$ & $0.00$ \\ 
+& $\mathit{WO}$ & $940252$ & $\pmb{932840}$ & $2.62$ & $\pmb{833730}$ & $830704$ & $1.07$ \\ \hline
+
+\multirow{3}{*}{\rotatebox[origin=c]{90}{K20\_F04}}
+& $\mathit{WS_n}$ & $-131$ & $\pmb{0}$ & $-0.05$ & $\pmb{-978}$ & $-4868$ & $1.44$ \\ 
+& $\mathit{Z}$ & $-131$ & $\pmb{41}$ & $-0.06$ & $\pmb{-433}$ & $-2174$ & $0.65$ \\ 
+& $\mathit{WO}$ & $1186142$ & $\pmb{1208480}$ & $-8.30$ & $\pmb{1133633}$ & $1142120$ & $-3.15$ \\ \hline
+
+\multirow{3}{*}{\rotatebox[origin=c]{90}{K25\_F04}}
+& $\mathit{WS_n}$ & $\pmb{0}$ & $0$ & $0.00$ & $\pmb{0}$ & $-124$ & $0.05$ \\ 
+& $\mathit{Z}$ & $\pmb{1120}$ & $582$ & $0.20$ & $\pmb{161}$ & $-124$ & $0.11$ \\ 
+& $\mathit{WO}$ & $\pmb{1532352}$ & $1579490$ & $-17.38$ & $\pmb{1427212}$ & $1507580$ & $-29.64$ \\ \hline
+
+\multirow{3}{*}{\rotatebox[origin=c]{90}{K30\_F05}}
+& $\mathit{WS_n}$ & $\pmb{0}$ & $0$ & $0.00$ & $\pmb{0}$ & $-37635$ & $13.77$ \\ 
+& $\mathit{Z}$ & $\pmb{1136}$ & $775$ & $0.13$ & $\pmb{12}$ & $-4960$ & $1.82$ \\ 
+& $\mathit{WO}$ & $\pmb{1935784}$ & $1959720$ & $-8.76$ & $\pmb{2162213}$ & $2041240$ & $44.25$ \\ \hline
+
+\multirow{3}{*}{\rotatebox[origin=c]{90}{K35\_F05}}
+& $\mathit{WS_n}$ & $\pmb{0}$ & $0$ & $0.00$ & $\pmb{-378}$ & $-16843$ & $6.01$ \\ 
+& $\mathit{Z}$ & $\pmb{165}$ & $31$ & $0.05$ & $\pmb{-244}$ & $-4000$ & $1.37$ \\ 
+& $\mathit{WO}$ & $\pmb{1916688}$ & $1918110$ & $-0.52$ & $\pmb{2031193}$ & $1888430$ & $52.08$ \\ 
+\end{tabular}
+\end{table}

@@ -1,0 +1,211 @@
+\chapter{Results}
+
+The solution quality and performance of the heuristic algorithm are primarily evaluated by comparing the implementation with an integer linear programming (ILP) model, described in AMPL and executed using CPLEX linear solver, herein simply referred to as \textit{ILP solutions}.\footnote{The full results, containing all input and output files, can be found in the following public \textit{GitHub} repository: \url{https://github.com/LMesaric/MSc-Thesis-FER-2022}.}
+While the ILP can find optimal solutions for smaller instances, it is not scalable for larger instances.
+Thus, the ILP was run with a maximal time limit and the suboptimal solutions obtained were used for comparison with the proposed heuristic algorithm.
+
+All test scenarios used the same objective function weighting factors: $a_1 = 10^7$, $a_2 = 10^2$, $a_3 = 10^{-4}$.
+As a part of the analysis, three different \textit{correction factor} ($\mathit{CF}$) values were used: $15\%$, $25\%$, $50\%$.
+This was done to investigate the solution quality under increasing target water content.
+
+Five randomly generated test instances were evaluated for every test scenario.
+With seven sizes, two distributions over time (IA, MUOT), two distributions over fronts (NUOF, UOF), three correction factor values, and five instances for each combination, a total of 420 problem instances were used in the evaluation, with 60 instances for each scenario size.
+
+Three different machines were used to find heuristic and ILP results presented in this chapter.
+All used processors support dividing each physical core into two logical processors (threads).
+Their hardware and operating system specifications are:
+\begin{itemize}
+    \item AMD Ryzen(TM) 7 5800H CPU at \SI{4.00}{\GHz} (8 cores, 16 threads),  \SI{16.00}{\giga\byte} DDR4 RAM, Windows~10 Home 64-bit,
+    \item AMD Ryzen(TM) 9 3900X CPU at \SI{4.40}{\GHz} (12 cores, 24 threads), \SI{32.00}{\giga\byte} DDR4 RAM, Windows~10 Education 64-bit,
+    \item Intel(R) Core(TM) i7-7700 at \SI{3.60}{\GHz} (4 cores, 8 threads),   \SI{16.00}{\giga\byte} DDR4 RAM, Windows~10 Pro 64-bit.
+\end{itemize}
+
+
+\section{Comparison of Heuristic and ILP Results}
+
+Results are presented in Table~\ref{tbl:comparison-cf-15}, Table~\ref{tbl:comparison-cf-25}, and Table~\ref{tbl:comparison-cf-50}, one for each value of the correction factor.
+Shown values are the arithmetic means for the five instances of the same test scenario.
+They were rounded to the nearest integer as differences of less than one liter are considered negligible.
+If the optimal solution was found for one or more instances, the scenario is marked with a single asterisk.
+If the optimal solution was found for all five instances, the scenario is marked with a double asterisk.
+The requirements for a solution to be considered optimal are explained in Section~\ref{sec:discussion}.
+
+Because of the stark differences between the values of the weighting factors $a_1$, $a_2$, and $a_3$, for example, a solution which has a slightly better negative water surplus and a significantly worse minimal water surplus is still considered to be overall better.
+Therefore, the solutions are effectively compared as tuples $(\!\mathit{WS_n}, \mathit{Z}, \mathit{WO})$.
+The better of the two solutions for the same scenario is written in a bold font.
+
+The differences between each of the three objectives are expressed in terms of the number of average-sized downloads (drops) of water, to put the results in perspective.
+A positive value means the heuristic algorithm performed better with respect to the relevant objective.
+The amount of water in an average-sized download depends on the instance size, specifically on the number of aircraft of each subtype.
+It is calculated by dividing the estimated total water output of all aircraft with the estimated average number of downloads, using the data from Table~\ref{tbl:capacity-and-droprate}.
+For example, if a heavy helicopter makes four flights, each lasting two hours, and performing on average four drops per hour, the estimated total number of drops it will make is $4 \cdot \SI{2}{\hour} \cdot \SI{4}{\per\hour} = 32$, and the estimated total water output is $32 \cdot \SI{4500}{\liter} = \SI{144000}{\liter}$.
+For the test scenarios shown in Table~\ref{tbl:scenario-sizes}, the capacity of an average-sized download ranges between approximately \SI{2700}{\liter} and \SI{3000}{\liter}.
+
+The ILP model was run on the machine with the i7-7700 CPU with a time limit of two hours, terminating early only if the optimal solution was found, which rarely happened.
+The heuristic algorithm was executed on the machines with the 5800H and 3900X CPUs, using different hyperparameters.
+For every test instance, up to 200 GRASP and 7\,000 local search iterations were executed.
+The better of the two runs (for each instance) was selected as the heuristic solution presented in this paper.
+
+\input{content/results-table-h-ilp-15}
+\input{content/results-table-h-ilp-25}
+\input{content/results-table-h-ilp-50}
+
+
+\section{Comparison with Extended Execution Time}
+
+In order to more accurately assess the quality of the solutions found by the heuristic algorithm for larger instances, CPLEX solver was used on ten randomly selected test instances, with effectively six times longer execution time.
+This was achieved by executing instances with a time limit of six hours, which is three times longer than for previous instances, and using a CPU with double the physical and logical core count (Ryzen 7 5800H).
+Even though a laptop was used, and the CPU usage was consistently very high (often staying at $100\%$ for a short time), there were no signs of overheating or CPU throttling, with temperatures staying well below \SI{65}{\degreeCelsius}, and the CPU clock speed not dropping under 3.90~GHz.
+
+The test instances were randomly picked by hand.
+Two instances were selected from each test scenario size with 15 or more aircraft (Table~\ref{tbl:scenario-sizes}), one with $\mathit{CF} = 15\%$, and the other with $\mathit{CF} = 50\%$.
+Different distributions of the target water content were sampled, to keep the scenarios varied.
+
+The results are presented in Table~\ref{tbl:comparison-extended}.
+These values are for single instances, and not average values of five instances.
+
+\input{content/results-table-h-ilp-extended}
+
+
+\section{Comparison of GRASP Phases}
+
+The elapsed real time per GRASP iteration, measured in seconds, is shown in Table~\ref{tbl:iteration-time}.
+Execution times for the randomized greedy algorithm and local search are also shown.
+Their sum is approximately equal to the duration of a GRASP iteration.
+
+These arithmetic means and standard deviations were calculated based on 12\,000 iterations for each test scenario size, i.e., a total of 84\,000 GRASP iterations were used.
+The results are not divided based on the test scenario type like in previous tables as there were no noticeable differences in execution time.
+Instead, measurements are only grouped based on the size of the scenario.
+
+Only the results from the machine with the 3900X CPU were used, to keep measurements consistent.
+The 3900X machine has 12 physical cores, and the heuristic algorithm was executed with 20 worker threads.
+This means that Simultaneous Multithreading\footnote{AMD's equivalent of Intel's proprietary Hyper-Threading Technology.} was extensively used, and uneven thread scheduling could explain the approximately $10\%$ standard deviation with respect to iteration duration.
+
+A fixed number of 7\,000 local search iterations was used for these measurements.
+While that is reasonable for larger instances, the smaller ones typically converge much sooner.
+For example, scenarios of size K10\_F03 could easily be executed within one second without the solution quality being noticeably diminished.
+
+\input{content/results-table-time}
+
+\input{content/results-table-greedy-ls-50}
+
+Table~\ref{tbl:comparison-greedy-ls-50} compares the quality of solutions found by the randomized greedy algorithm and local search.
+The local search solutions are the same as heuristic solutions from Table~\ref{tbl:comparison-cf-50}.
+Randomized greedy algorithm was executed separately, on the machine with the 3900X CPU, with hyperparameters tuned such that the greedy algorithm would find much better solutions than usual, but subsequent local search would perform poorly as the greedy solution was too deep in a local optimum.
+Local search was eliminated by setting $L = 0$, and the number of GRASP iterations was increased to 400 to keep the overall execution time comparable.
+The key to getting better solutions was to reduce the weighting factors used in the greedy fitness function: $k_{r, G} = k_{p, G} = 1$.
+
+
+\section{Discussion}\label{sec:discussion}
+
+The heuristic algorithm outperforms the ILP approach in every single test instance with 20 or more aerial resources -- all 240 of them.
+Consequently, it also outperforms ILP in averaged objective values shown in the three tables with results.
+
+In case of scenarios with 15 resources, the heuristic algorithm always outperforms the ILP approach with respect to averaged objective values.
+When it comes to specific instances, ILP found better solutions in 10 of the 60 instances, one of which was the optimal solution.
+
+In case of scenarios with seven or ten resources, the results are a bit more mixed.
+Of the 120 test instances, ILP approach found the optimal solution for 80 of them, whereas the heuristic algorithm found 61 optimal solutions.
+For additional seven test instances the heuristic and ILP approaches found the same solution, but CPLEX could not guarantee it was optimal.
+
+Knowing which instances could be improved, we could have run the algorithm for thousands of iterations until, hopefully, optimal solutions would be found.
+For example, it would take us approximately one minute per 1\,000 GRASP iterations for a test instance with seven resources.
+However, that was not done so as not to give the heuristic algorithm an unfair advantage.
+In real-world scenarios, there is no reason not to execute the algorithm for as long as possible according to the time available.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{img/wsn-cf50.png}
+    \caption{Comparison of negative water surplus per test instance for $\mathit{CF} = 50\%$}
+    \label{fig:wsn-cf50}
+\end{figure}
+
+To get a better idea of the obtained results, Figure~\ref{fig:wsn-cf50} depicts the negative water surplus in the solutions obtained by the heuristic and ILP approaches, for each $\mathit{CF} = 50\%$ test instance.
+The 140 test instances are ordered by increasing size, as if Table~\ref{tbl:comparison-cf-50} were read row by row, with the size increasing every 20 instances.
+Note the scale on the vertical axis -- the negative water surplus of ILP solutions reaches hundreds of thousands of liters, while heuristic solutions stay firmly within ten thousand liters (corresponding to 2--3 drops for airtankers or heavy helicopters, or around 10 drops for light helicopters).
+
+The relative optimality gap in CPLEX was set to $10^{-4}$, meaning that it is unlikely $\mathit{WO}$ will be optimal as it barely had any effect on the value of the objective function, and, if the absolute value of $\mathit{WS_n}$ is large, $\mathit{Z}$ might also be suboptimal, but should be fairly close.
+This is the reason why, in some rare cases, the heuristic algorithm can find a better solution than what CPLEX considers to be optimal.
+For example, the K07\_F02 UOF + MUOT scenarios for $\mathit{CF} = 15\%$ and $\mathit{CF} = 50\%$, and the K07\_F02 NUOF + MUOT $\mathit{CF} = 25\%$ scenario.
+It is also possible that the heuristic algorithm found some optimal solutions which the ILP approach did not manage to find, however, we cannot know that for sure.
+
+Instances with a higher $\mathit{CF}$ value have approximately uniformly higher target water content per time slot than those with a lower value.
+Having very little negative water surplus in instances with a high $\mathit{CF}$ value is much more important, as it means a more uniform distribution of water was achieved for a similar total water output.
+However, setting a very high $\mathit{CF}$ value (e.g., $90\%$) leads to very large absolute values of negative water surplus because it is impossible to schedule resources such that the targets are close to being satisfied.
+This also often results in a large absolute value of minimal water surplus, sometimes completely ignoring several time slots, and entirely missing the goal of achieving a continuous flow of water.
+As can be seen from Table~\ref{tbl:comparison-cf-50}, approximately $\mathit{CF} = 50\%$ seems to be a reasonable choice because the negative water surplus is often very close to zero.
+Of course, in real-world scenarios the incident commander determines the required target water content, but their decision should be grounded on similar principles so as not to lead to unsatisfying solutions.
+It should also be noted that the heuristic algorithm outperforms the ILP approach by a growing margin as $\mathit{CF}$ increases, as well as beginning to outperform ILP for smaller instances.
+
+There seems to very little difference in solution quality for different target water content distributions over time and fronts, indicating that the heuristic algorithm is robust.
+The differences are not consistent, and the relative performance for a certain distribution changes for different $\mathit{CF}$ values and scenario sizes.
+This is likely due to the random nature of the test scenarios.
+Perhaps some groups of scenarios had slightly higher targets and simulated worse flying conditions (reduced number of drops per hour), resulting in relatively worse solution quality.
+
+As expected, local search always improves the solutions found by the randomized greedy algorithm.
+It should be noted that, for $\mathit{CF} = 50\%$ and scenarios with 20 or more aerial resources, the greedy algorithm manages to beat the ILP approach in averaged objective values.
+More precisely, it beats the ILP solutions in 72 of the 80 test instances.
+
+For larger test instances, the randomized greedy algorithm takes approximately a third of the total execution time.
+Of course, the exact ratio depends on the duration of the local search, i.e., the number of iterations $L$.
+For smaller instances, the greedy algorithm finishes practically instantly.
+
+Unfortunately, the performance of the heuristic algorithm does not improve linearly with the number of used threads.
+Employing more threads, up to the number of available cores, will increase the number of performed GRASP iterations per unit of time, but will also slow down individual iterations, increasing their duration.
+Therefore, the durations shown in Table~\ref{tbl:iteration-time} depict the worst-case scenario, and allow for realistic calculations of what the execution time would be for a large number of threads and iterations.
+For example, for K35\_F05, 200 GRASP iterations, and 20 threads, each thread would execute 10 GRASP iterations, resulting in an execution time of approximately \SI{146}{\second}.
+If a CPU with eight threads were used, it can be expected that the execution would take \SI{366}{\second}, or approximately six minutes, assuming that the processor has similar single-threaded performance as the 3900X.
+If a single worker thread were used, the GRASP iteration duration would be reduced by approximately $35\%$ (measured for K35\_F05), bringing the time down to about \SI{9.5}{\second} per iteration.
+Of course, it is more beneficial to perform more GRASP iterations in a predetermined amount of time, which is why using as many worker threads as reasonably possible is recommended.
+In most cases, the number of worker threads should be equal to the number of logical processors.
+
+Rudimentary testing was performed on instances outside of the scope of the defined test scenarios.
+Specifically, test instances with 50 aerial resources, five fire fronts, and $\mathit{CF} = 50\%$ were used.
+For the same parameters as in Table~\ref{tbl:iteration-time}, an average GRASP duration took approximately \SI{25.2}{\second}, divided into \SI{14.8}{\second} for the randomized greedy algorithm, and \SI{10.4}{\second} for local search.
+
+Not only is the heuristic algorithm very fast, but it also uses very little memory (RAM).
+For largest tested instances (K35\_F05), it reported using approximately $\SI{1}{\mega\byte} + w \cdot \SI{0.5}{\mega\byte}$ of memory, where $w$ is the number of worker threads in a thread pool.
+On the other hand, the ILP approach occasionally used more than \SI{900}{\mega\byte} of RAM with 16 active threads.
+With respect to the CPU usage, the number of worker threads can be specified for both approaches, making them scalable with the number of CPU cores, and therefore tied in that regard.
+
+Table~\ref{tbl:comparison-extended} provides a comparison of ILP solutions found after six hours using a more powerful CPU, and the solutions found by the heuristic algorithm.
+It can be seen that, in most cases, the heuristic algorithm will still prevail in quality, doing so in mere seconds per GRASP iteration.
+ILP solutions have higher quality only for smaller instances and $\mathit{CF} = 15\%$, which is less important, and it is truly not a significant difference.
+It most certainly does not justify the required execution time.
+To reiterate, the heuristic algorithm found the solutions shown in Table~\ref{tbl:comparison-extended} in less than 150 seconds per problem instance (elapsed real time), on the same hardware where the linear solver was executed.
+Each instance with 15 or 20 resources was solved within one minute.
+
+
+\section{Hyperparameter Values}
+
+Detailed analysis of the effects of hyperparameter values (function arguments in Algorithm~\ref{alg:grasp}) was not conducted.
+From rudimentary testing it was concluded that very different values of parameters still perform remarkably well.
+Also, performance depends on the specific instance -- some values might achieve better results with one instance, and worse with another.
+Default values, as shown in Table~\ref{tbl:cli}, have been found to work quite well.
+
+Generally speaking, higher numbers of GRASP and local search iterations may lead to better solutions, with diminishing returns after approximately $100$ and $7\,000$ iterations, respectively, depending on the instance size.
+In some smaller instances, optimal solutions were found withing a dozen GRASP iterations.
+For small instances, a couple thousand local search iterations should be more than enough.
+Obviously, a larger number of iterations will increase the execution time, doing so approximately linearly.
+
+As a rule of thumb, $N_D - N_R \le 2$ should hold.
+Otherwise, the search will be slowed down significantly due to the extensive use of optimal depth-first search, with a minimal benefit to the solution quality.
+It would be better to spend the time on executing more iterations than on deepened DFS.
+If DFS wants to be completely avoided, the hyperparameters can be set such that $N_R \gg N_D$.
+
+The optimal starting temperature heavily depends on the values of the weighting factors in the objective function, and the expected negative water surplus, which in turn define the expected values of the objective function.
+In practice, it is a good idea to initially have approximately $50\%$ chance of accepting non-improving solutions, resulting in $T_0 \approx -1.5 \, \cdot \, \Delta f$.
+The expected average value of $\Delta f$ is an open question, and depends on the problem instance.
+It should not be a big issue if $T_0$ is larger than described, as that will only result in a more randomized search at the beginning, which is not necessarily a bad thing.
+After $L$ local search iterations, the final temperature will be $T_L = \beta ^ L \cdot T_0$.
+If one already has a final temperature in mind, the equation can be reversed in order to calculate the required cooling factor: $\beta = \log_L \left( T_L \, / \, T_0 \right)$.
+If $a_1 \gg a_2 \gg a_3$ holds, and the target water content can be almost satisfied for a particular problem instance, then $T_L \in [ a_3, a_2 ]$ is a reasonable target value for the final temperature.
+
+Weighting factors used in the greedy construction phase and the repair method ($k_{r, G}, k_{p, G}, k_{r, R}, k_{p, R}$) are particularly prone to noticeably altering the solution quality when modified.
+For some instances smaller values work best, and for others it is beneficial to set them to values upwards of $10$, completely overshadowing the objective function (Algorithm~\ref{alg:greedy}, line~\ref{alg:greedy-line-fitness-def}).
+Factors $k_{p, G}$ and $k_{p, R}$ should not be set close to zero if $N_R \not\gg N_D$, as that can lead to intermediate schedules which have a lot of unscheduled flights when compared to the maximum possible number of takeoffs, resulting in DFS significantly slowing down the entire search because the search depth will be much larger than expected.
+If some GRASP iterations seem to take much longer than others, it might be due to DFS, and increasing $N_D$ should help resolve that problem.
+
+Considering that a GRASP iteration can be performed within seconds, even in case of largest test instances, it is a good idea to restart the search multiple times, each time using different parameters.
+Using a CPU with eight logical processors, a test scenario with 20 aerial resources can be solved ten times over within ten minutes, each time executing almost a hundred GRASP iterations.
+This way, the heuristic algorithm will be used to its full potential.

@@ -1,0 +1,339 @@
+\chapter{Implementation}
+
+\section{Technologies}
+
+The heuristic algorithm was implemented in software using the programming language C++, specifically C++20, the standard's latest revision.
+Build automation was achieved with CMake, version 3.21.
+Source code was compiled with Microsoft Visual C++ (MSVC) compiler.
+Even though other compilers were not tested, both GCC and Clang are also supposed to support all of the used language features.
+There are no known limitation with respect to the operating system, although the development and benchmarking was performed exclusively on Windows 10.
+The application can be compiled both for 32-bit and 64-bit system, without any noticeable performance differences.
+
+Only the central processing unit (CPU) is used for program execution.
+The implementation does not rely on the graphics processing unit (GPU) for massive parallelization, in order to have the simplest hardware requirements.
+However, it does extensively employ multiple processing units at once in the form of multithreading.
+
+There are no special requirements in the developed program that would warrant the use of any specialized programming language.
+C++ was chosen over other programming languages simply because of the performance benefits.
+With the time limit set aggressively low at ten minutes, it was necessary to maximize the hardware's potential, which was done in part by the choice of a programming language.
+
+
+\section{Input Data Formats}
+
+All input parameters are passed to the program in the form of an input file or read from the standard input stream (stdin).
+Two textual representations are supported, referred to as \textit{AMPL format} and \textit{simple format}.
+
+
+\subsection{AMPL Format}
+
+A problem-specific subset of the AMPL data format is supported.
+AMPL is an algebraic modeling language used for mathematical computing.
+The full format specification is described in detail in Ref~\cite{Fourer/AMPL}.
+This section focuses on the few features supported in the developed program, and explains requirements which have to be met in order for the input data to be correctly interpreted by the program.
+This format is primarily supported for compatibility reasons, so that the same input data files can be read as the ones used in Ref~\cite{SkorinKapov/ILP}, simplifying the algorithm comparison.
+
+An example of data in this format is shown in Appendix~\ref{appx:input-file-ampl}.
+Real input data must closely follow this example.
+The names of sets and parameters are irrelevant, as long as their order is the same.
+The names of elements in sets of aircraft, fire fronts, and aircraft types must be a single letter followed by an integer.
+These elements must always appear in ascending order, including when used as labels for rows or columns of matrices.
+Time slots must also always be used in ascending order.
+The numbering of all elements and labels must be one-based.
+The number and positioning of blank lines between different parameters, as well as within matrix definitions, must be strictly respected. 
+Comments (starting with \texttt{\#}) may only appear in the same places as in the example, but can also be omitted as long as the preceding semicolon stays in the same line.
+The number of separating spaces and tabulators between labels and values in the same line is irrelevant, as long as there is at least one separating character.
+
+In the set of aircraft types, \texttt{Q1} and \texttt{Q2} represent helicopters and airplanes, respectively.
+Only these two types are allowed, and both must be present.
+The second row of matrix \texttt{V} is ignored.
+Strictly speaking, it should be a negation of the first row, which contains values for the parameter $V_k$.
+The second row of matrix \texttt{B} is also ignored, and should always contain only zeroes, as it is not allowed to restrict a fire front only to airplanes.
+The first row contains values for the parameter $B_f$.
+The parameter \texttt{M} is a large integer constant used in the ILP formulation, and ignored in the input data.
+The usage of all other parameters is self-explanatory, and backed by comments in the example data.
+
+It should have been possible to use the AMPL C++ API, which exists for Windows, Linux and macOS, in order to parse the input data file.
+That would have removed all of the aforementioned restrictions, on top of eliminating the need for a custom data parser.
+However, it was decided against using the API to avoid licensing issues, as well as having a library dependency which is platform dependent.
+
+
+\subsection{Simple Format}
+
+Unless AMPL API is used, generating and parsing AMPL data files is unnecessarily complicated.
+To help alleviate this issue, another input data format was designed, aptly named the \textit{simple format}.
+An example of data in this format is given in Appendix~\ref{appx:input-file-simple}.
+Data in this example is the same as in Appendix~\ref{appx:input-file-ampl}.
+
+Data consists only of integers and floating point numbers, separated by one or more whitespace characters.
+Different whitespace characters can be freely mixed.
+The most compact representation would be a single line of text with the numbers separated by a single space character.
+
+Parameters have a predefined order.
+For parameters which are matrices, \textit{row-major} order is used, meaning the leftmost index changes the least frequently.
+The order of aircraft and fire fronts is irrelevant, as long as it is the same throughout the input data.
+The time slots must be sorted and indexed such that the earliest time slots is the first one.
+The order is as follows:
+\begin{itemize}
+    \item the number of aerial resources $\vert \mathcal{K} \vert$,
+    \item the number of fire fronts $\vert \mathcal{F} \vert$,
+    \item the number of time slots $\vert \mathcal{T} \vert$,
+    \item vectors $V_k$, $T_k$, $R_k$, $P_k$, $N_k$,
+    \item matrix $A^t_k$, indexed as $A[t][k]$,
+    \item vector $B_f$,
+    \item matrix $U_{kf}$, indexed as $U[k][f]$,
+    \item vectors $C_k$, $S_f$,
+    \item matrix $D^t_{kf}$, indexed as $D[f][t][k]$,
+    \item matrix $E^t_{kf}$, indexed as $E[f][t][k]$,
+    \item matrix $W^t_f$, indexed as $W[t][f]$,
+    \item $a_1, a_2, a_3$.
+\end{itemize}
+
+Note that, for the most part, the simple format is just the AMPL format with all labels removed, keeping only the important numerical values in the same predefined arrangement.
+Compared to the AMPL format, this format eliminates declaring the aircraft and fire front sets, simplifies defining the type of each aircraft and type limitations for fronts, and removes the redundant ILP parameter $M$.
+
+If the data generation is done in software, for example, as an export from a graphical user interface, it should be considerably easier to generate input data in this format compared to the AMPL data format.
+The only noticed downside is limited readability for humans because of the lack of annotations, especially if newline characters are not consistently used to separate different parameters into groups.
+
+
+\section{Output Data}
+
+\begin{table}[htbp]
+\caption{Keys and descriptions of some output values}
+\label{tbl:output-params}
+\small
+\centering
+
+\newcommand{\twoline}[2]{\begin{tabular}[t]{@{}l@{}}\texttt{#1} \\ \texttt{#2}\end{tabular}}
+\newcommand{\threeline}[3]{\begin{tabular}[t]{@{}l@{}}\texttt{#1} \\ \texttt{#2} \\ \texttt{#3}\end{tabular}}
+\newcommand{\thinline}{\specialrule{.001em}{.2em}{.2em}}
+
+\begin{tabularx}{\hsize}{@{}lX@{}}
+Key & Description \\
+\midrule
+\texttt{WO}        & The total water output (positive). \\
+\texttt{Sum\_WSn}  & The total negative water surplus (negative or zero). \\
+\texttt{Z}         & The minimal water surplus (any real value). \\
+\texttt{objective} & The objective function value (any real value). \\
+
+\thinline
+
+\texttt{\_solve\_wall\_time}    & The duration of the entire execution. \\
+\texttt{\_takeoffs\_count}      & The number of takeoffs in the best schedule. \\
+\texttt{\_takeoffs\_count\_max} & The theoretical upper limit on the number of takeoffs for the given input parameters. \\
+\texttt{\_best\_iteration}      & The ordinal number of the GRASP iteration which yielded the best schedule, using one-based indexing. \\
+\texttt{\_total\_iterations}    & The total number of executed GRASP iterations. \\
+\texttt{\_threads}              & The number of worker threads in the thread pool. \\
+
+\thinline
+
+\threeline{\_objective\_greedy\_best}{\_objective\_greedy\_avg}{\_objective\_greedy\_stddev} & The best value, arithmetic mean, and standard deviation of the objective function values of all solutions constructed in the greedy phase of GRASP. \\
+\thinline
+\twoline{\_objective\_ls\_avg}{\_objective\_ls\_stddev}             & Arithmetic mean and standard deviation of the objective function values of all solutions found by local search. \\
+\thinline
+\twoline{\_duration\_iteration\_avg}{\_duration\_iteration\_stddev} & Arithmetic mean and standard deviation of the duration of all GRASP iterations. \\
+\thinline
+\twoline{\_duration\_greedy\_avg}{\_duration\_greedy\_stddev}       & Arithmetic mean and standard deviation of the duration of the greedy phase of GRASP. \\
+\thinline
+\twoline{\_duration\_ls\_avg}{\_duration\_ls\_stddev}               & Arithmetic mean and standard deviation of the duration of local search. \\
+
+\thinline
+
+\texttt{\_durations\_iteration} & A list durations for every GRASP iteration. \\
+\texttt{\_durations\_greedy}    & A list durations for every greedy construction phase. \\
+\texttt{\_durations\_LS}        & A list durations for every local search. \\
+\end{tabularx}
+\end{table}
+
+The program output contains relevant information on the best found schedule in a human-readable format.
+An example of such output is given in Appendix~\ref{appx:output-file}.
+The output is always sent to the standard output stream (stdout), and also to an output file if explicitly requested.
+
+In the beginning, the output data gives an overview of the three objective values, followed by values related to the performance of the algorithm.
+Results of both phases of every GRASP iteration are aggregated, and the arithmetic means and standard deviations of the objective function values and execution times are given.
+Table~\ref{tbl:output-params} lists and describes all of the simple output values.
+All durations are measured as elapsed real time, in seconds.
+
+The bulk of the output data is related to different representation of the best schedule.
+The order of all rows, columns, indices, etc., is the same as the order in the input data.
+All indexing is zero-based.
+
+The first representation, called \textit{condensed schedule}, is the most compact.
+It is a two-dimensional $\vert \mathcal{K} \vert \times \vert \mathcal{T} \vert$ matrix, with elements representing the number of the front on which the aircraft is flying in the relevant time slot.
+A dash symbol means the aircraft is not flying, either because it is resting or is unavailable.
+
+The full schedule is a three-dimensional $\vert \mathcal{K} \vert \times \vert \mathcal{F} \vert \times \vert \mathcal{T} \vert$ boolean matrix.
+It is an expanded version of the condensed schedule.
+Each block of values represents one aircraft, labeled with \texttt{x = k} for easier navigation.
+Elements take value $1$ if the corresponding aircraft is flying at the fire front during the time slot.
+Value $0$ means the aircraft is not flying at that specific front, but it might be flying elsewhere.
+
+The takeoffs matrix is the same as the model's decision variable, with boolean elements $c_{kf}^t$.
+
+Finally, a two-dimensional $\vert \mathcal{F} \vert \times \vert \mathcal{T} \vert$ matrix of water surplus per fire front and time slot is given, with elements $\mathit{WS}_{tf} \in \mathbb{R}$.
+Using this information, the input parameters can be tuned and the algorithm can be executed again if needed.
+For example, the target water content can be increased on some fronts, or an aircraft can be sent to a faraway base because it is actually not needed.
+
+
+\section{Command-line Flags}
+
+All program's parameters are set via command-line flags, including every hyperparameter used in pseudocode.
+Every flag has a reasonable default value in order to simplify launching the program.
+Flags are handled by a command line parser library licensed under the 3-clause BSD license~\cite{Schreiner/CLI11}.
+
+The most important flags are \texttt{-i,-{}-input} and \texttt{-o,-{}-output}.
+They are used to set the paths to the input and output files.
+If the values are "\texttt{-}" (default), the standard input and output streams are used instead.
+Considering that two different input file formats are supported, the flag \texttt{-f,-{}-format} is used to set the exact input format.
+While it would have been possible to assume AMPL data format was used if data started with \texttt{data;}, that was not done in case a third format has to be introduced in the future.
+
+The flag \texttt{-t,-{}-threads} can be used to set the number of worker threads.
+For maximum performance, the value should be between the number of physical CPU cores and the number of logical processors.
+Setting a value higher than the number of logical processors will most likely result in slower execution than if a lower number was selected.
+
+A comprehensive list of flags, their arguments' types and default values, as well as their descriptions, are depicted in Table~\ref{tbl:cli}.
+If the program is executed with the \texttt{-h,-{}-help} flag, a help message with similar information is printed and the program is terminated.
+
+The following is an example of how one might start the program: \newline
+\texttt{AerialResourceScheduler.exe -i~input.dat -o~results.txt \\ -f~ampl -t~8 -{}-iters~40}
+
+\begin{table}[htbp]
+\caption{Supported command-line flags}
+\label{tbl:cli}
+\fontsize{10.6pt}{13.3pt}\selectfont
+\centering
+\begin{tabularx}{\hsize}{@{}llllX@{}}
+Flag & Type & Default & Parameter & Description \\
+\midrule
+\texttt{-i,-{}-input}   & string & \texttt{-}     & \texttt{N/A}       & Path to input file. Reads from stdin if omitted or set to a dash symbol. \\
+\texttt{-o,-{}-output}  & string & \texttt{-}     & \texttt{N/A}       & Path to output file. Skips printing to a file if omitted or set to a dash symbol. \\
+\texttt{-f,-{}-format}  & enum   & \texttt{ampl}  & \texttt{N/A}       & Input data format. Either \texttt{ampl} or \texttt{simple}. \\
+\texttt{-t,-{}-threads} & uint   & \texttt{1}     & \texttt{N/A}       & Number of worker threads. \\
+\texttt{-{}-iters}      & uint   & \texttt{20}    & $\mathit{iterations}$ & Total number of GRASP iterations to run. Preferably a multiple of \texttt{-{}-threads} for maximum efficiency. \\
+\texttt{-{}-ls-iters}   & uint   & \texttt{6000}  & $L$                   & Number of iterations in local search. \\
+\texttt{-{}-nd}         & uint   & \texttt{5}     & $N_D$                 & Number of takeoffs to be removed in destroy method. \\
+\texttt{-{}-nr}         & uint   & \texttt{3}     & $N_R$                 & Number of takeoffs to be added in greedy part of repair method. \\
+\texttt{-{}-alpha-g}    & float  & \texttt{0.10}  & $\alpha_G$            & Alpha value for RCL in greedy construction. \\
+\texttt{-{}-alpha-d}    & float  & \texttt{0.75}  & $\alpha_D$            & Alpha value for RCL in destroy method. \\
+\texttt{-{}-alpha-r}    & float  & \texttt{0.10}  & $\alpha_R$            & Alpha value for RCL in greedy part of repair method. \\
+\texttt{-{}-kr-g}       & float  & \texttt{4.0}   & $k_{r, G}$            & Kr weight in greedy construction. \\
+\texttt{-{}-kp-g}       & float  & \texttt{4.0}   & $k_{p, G}$            & Kp weight in greedy construction. \\
+\texttt{-{}-kr-r}       & float  & \texttt{1.0}   & $k_{r, R}$            & Kr weight in greedy part of repair method. \\
+\texttt{-{}-kp-r}       & float  & \texttt{1.0}   & $k_{p, R}$            & Kp weight in greedy part of repair method. \\
+\texttt{-{}-t0}         & float  & \texttt{1e12}  & $T_0$                 & Starting temperature T0 in SA. \\
+\texttt{-{}-temp-coeff} & float  & \texttt{0.995} & $\beta$               & Cooling factor in SA. \\
+\end{tabularx}
+\end{table}
+
+
+\section{Schedule Class}
+
+Takeoffs are modeled as a simple data structure (\texttt{struct}) consisting of three unsigned bytes (\texttt{std::uint8\_t}) representing the ordinal numbers of the aircraft, the fire front, and the time slot.
+This way, $2^8 = 256$ different aerial resources, fire fronts, and time slots can be defined in the input data, far exceeding any real world requirements, while at the same time slightly reducing the amount of used memory.
+Of course, the ordinal numbers themselves are pointless outside of the context of a problem instance, which contains all the information parsed from the input data.
+
+A schedule is modeled as a relatively complex class.
+Much like in the pseudocode, the main part of a schedule is a set of takeoffs which constitute it.
+For typical problem instances, the takeoff matrix is rather sparse (usually between $1\%$ and $4\%$ of elements have their value set to $1$), so using a set to represent a sparse matrix makes sense.
+
+In order to improve performance, various calculations and constraint violations are cached, for example, the number of remaining available takeoffs for each aircraft, the number of remaining places in the carousel per front and time slot, the water surplus per front and time slot, as well as the total water output.
+Overall, great care was taken to reduce the execution time as much as possible.
+Throughout development even minor changes to the implementation were benchmarked to determine the most performant choice.
+
+The schedule keeps track of the number of constraints that are violated for every possible takeoff -- all $\vert \mathcal{K} \vert \cdot \vert \mathcal{F} \vert \cdot \vert \mathcal{T} \vert$ of them.
+It is implemented as a three-dimensional matrix of unsigned bytes, in order to keep the memory usage low.
+At the beginning, it is initialized to block takeoffs which would be in conflict with aircraft availability, or begin too late for the aircraft to return to base in time, or would have an aircraft of the wrong type flying on a type-restricted fire front.
+Each inserted (removed) takeoff increases (decreases) the constraint violation counters.
+A value of $n$ could mean that a single constraint would be violated for $n$ takeoffs, or $n$ constraints would be violated for a single takeoff, or anything in between.
+If a value in the matrix is greater than zero, it means that the corresponding takeoff cannot be inserted in the current schedule because it would break one or more constraints, for example, because the same aircraft is already flying during that time slot, or because pilot's physical presence limit would be exceeded, or an aircraft of a different type is already scheduled to be flying at that front at any point during the prospective flight, etc.
+However, if the value in the matrix is equal to zero, it still does not mean it is legal to insert the takeoff, because not every constraint is tracked in this manner.
+The two constraints tracked separately are the number of remaining available takeoffs per aircraft, and the number of remaining places in the carousel per fire front and time slot.
+Only if all of the constraints are satisfied can the takeoff be considered feasible.
+
+Contrary to what is depicted in the pseudocode, making copies of a schedule was avoided whenever possible.
+The only exceptions are when the incumbent solution needs to be updated, so a copy of the schedule is stored as the best found solution so far.
+In all other situations, manipulations on the schedule are done in-place, by inserting and removing takeoffs.
+For example, values of functions $o(e)$ and $p(e)$ defined in lines \ref{alg:greedy-line-o-def} and \ref{alg:greedy-line-p-def} of Algorithm~\ref{alg:greedy} are calculated by inserting the takeoff $e$, computing the needed values, and then removing the takeoff $e$ from the schedule.
+Compared to making a copy of the schedule, inserting a takeoff, and then discarding it, this approach lowered execution time approximately five times.
+
+
+\section{Algorithm Parallelization}
+
+Looking at the loop in line~\ref{alg:grasp-line-for-loop} of Algorithm~\ref{alg:grasp}, it can be seen that each iteration is almost completely independent from all others.
+Iterations are only coupled by the aggregation phase of the algorithm, where the best solution from all iterations is chosen.
+This makes the whole search algorithm trivially parallelizable, since GRASP is the top-level metaheuristic.
+
+Parallelization is performed via a thread pool, where each GRASP iteration is a task that needs to be solved, sent into the task queue.
+A thread pool library is used, licensed under the MIT License~\cite{Shoshany/ThreadPool}.
+The worker threads repeatedly take tasks out of the queue, execute the search, and return the found solution.
+The main thread iterates over all submitted tasks, outputting the value of the objective function for the found solution as each iteration finishes, as well as updating the incumbent solution.
+This way, the user has a live insight into the progress of the search, as opposed to waiting until all iterations finish.
+Once all the tasks are finished, detailed information about the best found solution is output to the standard output stream, and possibly a file if specified.
+This marks the end of the program, and the process is terminated.
+
+During development, a peculiar issue was discovered after GRASP was parallelized.
+Even though different threads did not appear to share any resources, using 12 worker threads on a CPU with 12 physical cores resulted in roughly three times performance improvement, instead of the expected 12 times, compared to the single-threaded performance.
+However, when multiple single-threaded processes were started, the performance improved linearly.
+For example, executing 12 processes at once did in fact take the same amount of time as executing a single process.
+This means that the memory bandwidth and the amount of available CPU cache are not the limiting factors.
+
+The main cause of the slowdown were allocations of a larger amount of contiguous memory than necessary, in a function which looks for and returns all feasible takeoffs.
+To be exact, almost 150~KiB were reserved for each returned \texttt{std::vector} (one per function call), while most often just a few hundred bytes were actually being used.
+This memory was released shortly after it was reserved, and no more than five of those vectors were allocated at the same time.
+Per GRASP iteration, this was done almost $2.5$~million times, resulting in a total of over 350~GiB of memory being reserved each iteration.
+When 12 iterations were being executed at the same time, in total over 4~TiB of memory was reserved and released in the span of approximately 20 seconds.
+Granted, the actual RAM usage was rather low, and stayed under 10~MiB throughout the entire execution.
+The issue was remedied by not proactively reserving any memory, and letting the vector increase its size as needed.
+The most interesting observation was that the amount of reserved memory had almost no impact on single-threaded performance.
+If fact, the performance slightly improved when memory was allocated ahead of time, but not to the point where it would be immediately noticeable.
+
+It is suspected the issue was related to heap contention.
+In the case of multiple single-threaded processes, each of them has its own heap.
+In a multithreaded process, each thread has a separate call stack, but there is only one shared global heap.
+For multiple threads to be able to simultaneously allocate and deallocate memory, the heap must be thread-safe.
+Access to the heap is automatically serialized, meaning that while one thread's request is not finished, the other threads will be blocked.
+This is the default behaviour, which can be changed if a custom memory allocator is used~\cite{Ferreira/MemoryAllocators}.
+An \texttt{std::vector} stores data on the heap, so that it can be automatically resized as needed.
+Allocating so many vectors from a dozen threads at once most likely resulted in memory contention.
+
+
+\section{Algorithm Time Complexity}
+
+\def\Tkmax{T_{k, \mathrm{max}}}
+
+To simplify notation, aliases for the sizes of sets are defined: $K = \vert \mathcal{K} \vert,\, F = \vert \mathcal{F} \vert,\, T = \vert \mathcal{T} \vert$.
+Auxiliary variables are used to denote the maximum number of takeoffs in a valid schedule ($S$), and the longest flight time ($\Tkmax$):
+\begin{equation}
+S = \sum_{k \in \mathcal{K}}{N_k}
+\end{equation}
+\begin{equation}
+\Tkmax = \max_{k \in \mathcal{K}} T_k
+\end{equation}
+
+Time complexity of the randomized greedy algorithm is given in Equation~\ref{eq:big-o-greedy}.
+It is dominated by searching for all feasible takeoffs that could be inserted in the next iteration of the construction phase, i.e., evaluating the function $p(e)$ (Algorithm~\ref{alg:greedy}, line~\ref{alg:greedy-line-p-def}).
+\begin{equation}\label{eq:big-o-greedy}
+\mathcal{O} \left(
+S \cdot \Tkmax \cdot \left( K F T \right) ^ 2
+\right)
+\end{equation}
+Algorithm complexity of each local search iteration is given in Equation~\ref{eq:big-o-ls-long}.
+The last term is related to depth-first search.
+However, in practice, the base (representing feasible takeoffs) is significantly smaller than $K F T$ and $N_D - N_R \le 2$ is often used, meaning that the complexity can be approximated by Equation~\ref{eq:big-o-ls-short}.
+\begin{equation}\label{eq:big-o-ls-long}
+\mathcal{O} \left(
+N_R \cdot \Tkmax \cdot \left( K F T \right) ^ 2 + \left( K F T \right) ^ {N_D - N_R}
+\right)
+\end{equation}
+\begin{equation}\label{eq:big-o-ls-short}
+\mathcal{O} \left(
+N_R \cdot \Tkmax \cdot \left( K F T \right) ^ 2
+\right)
+\end{equation}
+If $\Tkmax$ and $N_R$ are assumed to be constants, and $\mathcal{O}(S) = \mathcal{O}(K)$ is assumed, the complexities can be simplified even further.
+Finally, by combining the complexities for each GRASP phase and applying the simplifications, the algorithm complexity for a single GRASP iteration can be found:
+\begin{equation}\label{eq:big-o-grasp}
+\mathcal{O} \left(
+\left( L + K \right) \cdot \left( K F T \right) ^ 2
+\right)
+\end{equation}
+Equation~\ref{eq:big-o-grasp} shows that the implemented heuristic algorithm has polynomial time complexity.
