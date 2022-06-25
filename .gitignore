@@ -1,4 +1,5 @@
 build/
+.idea/
 
 # Created by https://www.toptal.com/developers/gitignore/api/c++,cmake,clion,ninja
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++,cmake,clion,ninja
