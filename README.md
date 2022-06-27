@@ -3,6 +3,10 @@
 Master of Science Thesis at Faculty of Electrical Engineering and Computing, University of Zagreb, 
 under the mentorship of Lea Skorin-Kapov, PhD and co-mentorship of Nina Skorin-Kapov, PhD.
 
+**Paper -** [**PDF**](Paper/MasterThesis.pdf)
+
+---
+
 ### Abstract
 
 Expeditiously scheduling aerial resources is of vital importance when it comes to fighting large-scale wildfires.
