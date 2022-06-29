@@ -3,7 +3,8 @@
 Master of Science Thesis at Faculty of Electrical Engineering and Computing, University of Zagreb, 
 under the mentorship of Lea Skorin-Kapov, PhD and co-mentorship of Nina Skorin-Kapov, PhD.
 
-**Paper -** [**PDF**](Paper/MasterThesis.pdf)
+**Paper -** [**PDF**](Paper/MasterThesis.pdf)  
+**Presentation -** [**PPTX**](Presentation/Master2022Mesaric_Presentation.pptx)
 
 ---
 
