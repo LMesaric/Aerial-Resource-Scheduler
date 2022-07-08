@@ -72,7 +72,7 @@ namespace grasp {
 
         Schedule myGreedySchedule = greedy::createGreedySchedule(
                 anInstance,
-                aParameters.theAlphaRepair,
+                aParameters.theAlphaGreedy,
                 aParameters.theK1Greedy,
                 aParameters.theK2Greedy,
                 myGenerator
