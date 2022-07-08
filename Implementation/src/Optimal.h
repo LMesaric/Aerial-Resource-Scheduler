@@ -12,8 +12,13 @@
 // but will not be marked const to avoid making copies.
 std::pair<std::vector<Takeoff>, double> recursiveFindOptimalCompletion( // NOLINT(misc-no-recursion)
         Schedule &aSchedule,
-        std::unordered_set<Takeoff> &anIgnoreTakeoffs
+        std::unordered_set<Takeoff> &anIgnoreTakeoffs,
+        std::atomic_bool &aKillSwitch
 ) {
+    if (aKillSwitch) {
+        return {{}, -DBL_MAX};
+    }
+
     const auto myTakeoffs = aSchedule.findAllLegalTakeoffs();
 
     if (myTakeoffs.empty()) {
@@ -33,7 +38,9 @@ std::pair<std::vector<Takeoff>, double> recursiveFindOptimalCompletion( // NOLIN
 
         aSchedule.insertTakeoff(myTakeoff);
 
-        auto [myOptimalTakeoffsTmp, myObjectiveValueTmp] = recursiveFindOptimalCompletion(aSchedule, anIgnoreTakeoffs);
+        auto [myOptimalTakeoffsTmp, myObjectiveValueTmp] = recursiveFindOptimalCompletion(
+                aSchedule, anIgnoreTakeoffs, aKillSwitch
+        );
 
         if (myObjectiveValueTmp > myOptimalObjectiveValue) {
             myOptimalTakeoffsTmp.push_back(myTakeoff);
@@ -55,9 +62,9 @@ std::pair<std::vector<Takeoff>, double> recursiveFindOptimalCompletion( // NOLIN
     return {std::move(myOptimalTakeoffs), myOptimalObjectiveValue};
 }
 
-std::pair<std::vector<Takeoff>, double> completeOptimally(Schedule &aSchedule) {
+std::pair<std::vector<Takeoff>, double> completeOptimally(Schedule &aSchedule, std::atomic_bool &aKillSwitch) {
     std::unordered_set<Takeoff> myIgnoreTakeoffs{};
-    auto myResults = recursiveFindOptimalCompletion(aSchedule, myIgnoreTakeoffs);
+    auto myResults = recursiveFindOptimalCompletion(aSchedule, myIgnoreTakeoffs, aKillSwitch);
     const auto &myTakeoffs = std::get<0>(myResults);
 
     for (const auto &myTakeoff: myTakeoffs) {

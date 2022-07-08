@@ -13,6 +13,8 @@ struct Parameters {
     InputFormat theInputFormat{InputFormat::Ampl};
 
     std::uint32_t theThreadCount{1};
+    double theTimeoutSeconds{-1};
+
     std::uint32_t theGraspIterationsCount{20};
     std::uint32_t theLsIterationsCount{6000};
 

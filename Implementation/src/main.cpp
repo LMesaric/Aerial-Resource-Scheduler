@@ -5,11 +5,13 @@
 #include "Parameters.h"
 #include "Statistics.h"
 
+#include <atomic>
 #include <chrono>
 #include <CLI11.hpp>
 #include <iostream>
 #include <map>
 #include <string>
+#include <thread>
 #include <vector>
 
 
@@ -37,6 +39,12 @@ void assignCLI(CLI::App &app, Parameters &p) {
             "-t,--threads",
             p.theThreadCount,
             "Number of worker threads."
+    )->required(false);
+
+    app.add_option(
+            "--timeout",
+            p.theTimeoutSeconds,
+            "Execution time limit in seconds. Ignored if set to a negative value."
     )->required(false);
 
     app.add_option(
@@ -165,10 +173,30 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Finished parsing input!" << std::endl;
 
-    // const auto myAccumulator = grasp::searchSequential(myInstance, myParameters);
-    const auto myAccumulator = grasp::searchParallelized(myInstance, myParameters);
+    const std::chrono::duration<double> myTimeout(
+            myParameters.theTimeoutSeconds > 0 ? myParameters.theTimeoutSeconds : DBL_MAX
+    );
+
+    std::atomic_bool myKillSwitch{false};
+    std::atomic_bool myKillTimer{false};
+    std::thread myTimeoutThread([myStartTime, myTimeout, &myKillSwitch, &myKillTimer] {
+        const auto myEndTime = myTimeout + myStartTime;
+        while (!myKillTimer) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if (std::chrono::steady_clock::now() > myEndTime) {
+                myKillSwitch = true;
+                break;
+            }
+        }
+    });
+
+    // const auto myAccumulator = grasp::searchSequential(myInstance, myParameters, myKillSwitch);
+    const auto myAccumulator = grasp::searchParallelized(myInstance, myParameters, myKillSwitch);
 
     const std::chrono::duration<double> myElapsedSeconds = std::chrono::steady_clock::now() - myStartTime;
+
+    myKillTimer = true;
+    myTimeoutThread.join();
 
     const auto myGreedyBestObjective = *std::max_element(
             myAccumulator.theGreedyObjectives.begin(), myAccumulator.theGreedyObjectives.end());
@@ -196,7 +224,7 @@ int main(int argc, char *argv[]) {
             << "\n_takeoffs_count_max = "
             << myAccumulator.theBestSchedule.getInstance().theMaxTakeoffsCount
             << "\n_best_iteration = " << myAccumulator.theBestIterationIndex
-            << "\n_total_iterations = " << myParameters.theGraspIterationsCount
+            << "\n_total_iterations = " << myAccumulator.theCompletedGraspIterationsCount
             << "\n_threads = " << myParameters.theThreadCount
             << "\n_objective_greedy_best = " << myGreedyBestObjective
             << "\n_objective_greedy_avg = " << myGreedyMean

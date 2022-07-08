@@ -7,6 +7,7 @@
 #include "Parameters.h"
 #include "Schedule.h"
 
+#include <atomic>
 #include <cmath>
 #include <memory>
 #include <random>
@@ -49,7 +50,12 @@ namespace {
 }
 
 namespace local_search {
-    Schedule search(Schedule aSchedule, const Parameters &aParameters, std::mt19937 &aGenerator) {
+    Schedule search(
+            Schedule aSchedule,
+            const Parameters &aParameters,
+            std::mt19937 &aGenerator,
+            std::atomic_bool &aKillSwitch
+    ) {
         Schedule myCurrentSchedule{std::move(aSchedule)};
         double myCurrentObjective{evaluateObjective(myCurrentSchedule)};
 
@@ -67,7 +73,7 @@ namespace local_search {
         myInsertedGreedyTakeoffs.reserve(aParameters.theNumberRepair);
 
         for (std::uint32_t myIterationCount = 1;
-             myIterationCount <= aParameters.theLsIterationsCount;
+             myIterationCount <= aParameters.theLsIterationsCount && !aKillSwitch;
              ++myIterationCount) {
 
             for (int i = 0; i < aParameters.theNumberDestroy && myCurrentSchedule.getTakeoffsCount() > 0; ++i) {
@@ -92,7 +98,7 @@ namespace local_search {
                 myCurrentSchedule.insertTakeoff(*myInsertedGreedyTakeoff);
             }
 
-            auto [myInsertedOptimalTakeoffs, myNewObjective] = completeOptimally(myCurrentSchedule);
+            auto [myInsertedOptimalTakeoffs, myNewObjective] = completeOptimally(myCurrentSchedule, aKillSwitch);
 
             if (myNewObjective > myBestObjective) {
                 myBestSchedule = myCurrentSchedule;

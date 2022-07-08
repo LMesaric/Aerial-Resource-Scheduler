@@ -4,6 +4,7 @@
 #include "Objective.h"
 #include "Schedule.h"
 
+#include <atomic>
 #include <memory>
 #include <optional>
 #include <random>
@@ -107,6 +108,7 @@ namespace greedy {
 
     [[nodiscard]] Schedule createGreedySchedule(
             std::shared_ptr<const Instance> anInstance,
+            std::atomic_bool &aKillSwitch,
             double anAlpha,
             double aK1,
             double aK2,
@@ -116,6 +118,9 @@ namespace greedy {
 
         while (auto myTakeoff = pickGreedyTakeoff(mySchedule, anAlpha, aK1, aK2, aGenerator)) {
             mySchedule.insertTakeoff(*myTakeoff);
+            if (aKillSwitch) {
+                break;
+            }
         }
 
         return mySchedule;
