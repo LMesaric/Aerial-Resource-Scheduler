@@ -4,7 +4,20 @@ Master of Science Thesis at Faculty of Electrical Engineering and Computing, Uni
 under the mentorship of Lea Skorin-Kapov, PhD and co-mentorship of Nina Skorin-Kapov, PhD.
 
 **Paper -** [**PDF**](Paper/MasterThesis.pdf)  
-**Presentation -** [**PPTX**](Presentation/Master2022Mesaric_Presentation.pptx)
+**Presentation -** [**PPTX**](Presentation/Master2022Mesaric_Presentation.pptx)  
+
+---
+
+### Build
+
+```
+cd Implementation
+mkdir build
+cmake -S src -B build
+cmake --build build --config Release
+
+"build/Release/AerialResourceScheduler.exe" -i input-ampl-example.txt -o output_file.txt --threads 8
+```
 
 ---
 
