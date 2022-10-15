@@ -3,6 +3,7 @@
 #include "Matrix.h"
 
 #include <array>
+#include <cstdint>
 #include <vector>
 
 

@@ -8,6 +8,7 @@
 #include <atomic>
 #include <cfloat>
 #include <chrono>
+#include <cstdint>
 #include <future>
 #include <list>
 #include <memory>

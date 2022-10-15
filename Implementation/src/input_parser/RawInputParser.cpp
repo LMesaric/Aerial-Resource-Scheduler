@@ -1,5 +1,6 @@
 #include "RawInputParser.h"
 
+#include <cstdint>
 #include <iostream>
 
 

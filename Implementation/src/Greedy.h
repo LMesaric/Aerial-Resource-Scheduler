@@ -5,6 +5,7 @@
 #include "Schedule.h"
 
 #include <atomic>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <random>

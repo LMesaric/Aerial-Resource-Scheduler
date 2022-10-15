@@ -1,5 +1,6 @@
 #include "AmplInputParser.h"
 
+#include <cstdint>
 #include <iostream>
 #include <regex>
 

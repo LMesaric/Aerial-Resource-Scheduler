@@ -4,6 +4,7 @@
 #include "input_parser/InstanceRaw.h"
 
 #include <algorithm>
+#include <cstdint>
 
 
 Front convertFront(const FrontRaw &aFrontRaw) {
