@@ -62,13 +62,7 @@ void assignCLI(CLI::App &app, Parameters &p) {
     app.add_option(
             "--nd",
             p.theNumberDestroy,
-            "Number of takeoffs to be removed in destroy method."
-    )->required(false);
-
-    app.add_option(
-            "--nr",
-            p.theNumberRepair,
-            "Number of takeoffs to be added in greedy part of repair method."
+            "Maximum number of takeoffs to be removed in destroy method. Actual number randomly chosen from range [1, N_D] in each iteration."
     )->required(false);
 
     app.add_option(
@@ -239,7 +233,7 @@ int main(int argc, char *argv[]) {
             << "\n_duration_ls_stddev = " << myLsDurationStdDev
             << "\n_durations_iteration = " << concatenate(myAccumulator.theIterationDurations)
             << "\n_durations_greedy = " << concatenate(myAccumulator.theGreedyDurations)
-            << "\n_durations_LS = " << concatenate(myAccumulator.theLsDurations);
+            << "\n_durations_ls = " << concatenate(myAccumulator.theLsDurations);
 
     std::ostringstream myOutputDataSchedule;
     myOutputDataSchedule

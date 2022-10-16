@@ -3,7 +3,6 @@
 #include "Greedy.h"
 #include "Instance.h"
 #include "Objective.h"
-#include "Optimal.h"
 #include "Parameters.h"
 #include "Schedule.h"
 
@@ -71,19 +70,24 @@ namespace local_search {
         myRemovedTakeoffs.reserve(aParameters.theNumberDestroy);
 
         std::vector<Takeoff> myInsertedGreedyTakeoffs{};
-        myInsertedGreedyTakeoffs.reserve(aParameters.theNumberRepair);
+        myInsertedGreedyTakeoffs.reserve(aParameters.theNumberDestroy);
 
         for (std::uint32_t myIterationCount = 1;
              myIterationCount <= aParameters.theLsIterationsCount && !aKillSwitch;
              ++myIterationCount) {
 
-            for (int i = 0; i < aParameters.theNumberDestroy && myCurrentSchedule.getTakeoffsCount() > 0; ++i) {
+            std::uniform_int_distribution<std::uint32_t> myDestroyDistribution{
+                    1,
+                    std::min<std::uint32_t>(aParameters.theNumberDestroy, myCurrentSchedule.getTakeoffsCount())};
+            const auto myRandomNumberDestroy = myDestroyDistribution(aGenerator);
+
+            for (int i = 0; i < myRandomNumberDestroy; ++i) {
                 Takeoff myRemovedTakeoff = destroyOneTakeoff(
                         myCurrentSchedule, aParameters.theAlphaDestroy, aGenerator);
                 myRemovedTakeoffs.push_back(myRemovedTakeoff);
             }
 
-            for (int i = 0; i < aParameters.theNumberRepair; ++i) {
+            while (true) {
                 std::optional<Takeoff> myInsertedGreedyTakeoff = greedy::pickGreedyTakeoff(
                         myCurrentSchedule,
                         aParameters.theAlphaRepair,
@@ -99,7 +103,7 @@ namespace local_search {
                 myCurrentSchedule.insertTakeoff(*myInsertedGreedyTakeoff);
             }
 
-            auto [myInsertedOptimalTakeoffs, myNewObjective] = completeOptimally(myCurrentSchedule, aKillSwitch);
+            const double myNewObjective = evaluateObjective(myCurrentSchedule);
 
             if (myNewObjective > myBestObjective) {
                 myBestSchedule = myCurrentSchedule;
@@ -109,15 +113,12 @@ namespace local_search {
 
             const double myDeltaCurrent = myNewObjective - myCurrentObjective;
 
-            std::uniform_real_distribution<double> myDistribution(0.0, 1.0);
-            const auto myRandomValue = myDistribution(aGenerator);
+            std::uniform_real_distribution<double> myAnnealingDistribution(0.0, 1.0);
+            const auto myRandomValue = myAnnealingDistribution(aGenerator);
 
             if (myDeltaCurrent > 0 || myRandomValue < std::exp(myDeltaCurrent / myTemperature)) {
                 myCurrentObjective = myNewObjective;
             } else {
-                for (const auto &myInsertedTakeoff: myInsertedOptimalTakeoffs) {
-                    myCurrentSchedule.removeTakeoff(myInsertedTakeoff);
-                }
                 for (const auto &myInsertedTakeoff: myInsertedGreedyTakeoffs) {
                     myCurrentSchedule.removeTakeoff(myInsertedTakeoff);
                 }

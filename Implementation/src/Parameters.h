@@ -19,8 +19,7 @@ struct Parameters {
     std::uint32_t theGraspIterationsCount{20};
     std::uint32_t theLsIterationsCount{6000};
 
-    std::uint32_t theNumberDestroy{5};
-    std::uint32_t theNumberRepair{3};
+    std::uint32_t theNumberDestroy{8};
 
     double theAlphaGreedy{0.1};
     double theAlphaDestroy{0.75};
