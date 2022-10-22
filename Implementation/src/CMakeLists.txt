@@ -14,11 +14,11 @@ add_executable(
         input_parser/AmplInputParser.h
         input_parser/RawInputParser.cpp
         input_parser/RawInputParser.h
+        input_parser/InputFormat.h
         input_parser/InputParserFactory.h
         Instance.h
         InstanceConverter.h
         Matrix.h
-        InputFormat.h
         Parameters.h
         Schedule.h
         Objective.h

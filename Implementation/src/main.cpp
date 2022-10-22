@@ -1,5 +1,5 @@
 #include "Grasp.h"
-#include "InputFormat.h"
+#include "input_parser/InputFormat.h"
 #include "input_parser/InputParserFactory.h"
 #include "InstanceConverter.h"
 #include "Parameters.h"

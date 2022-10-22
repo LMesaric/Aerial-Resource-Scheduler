@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <string>
 
-#include "InputFormat.h"
+#include "input_parser/InputFormat.h"
 
 
 static const auto STDIN_STDOUT_FILENAME = "-";
