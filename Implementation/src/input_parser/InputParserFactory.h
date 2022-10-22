@@ -5,6 +5,8 @@
 #include "InputFormat.h"
 #include "RawInputParser.h"
 
+#include "memory"
+
 
 class InputParserFactory {
     InputFormat theInputFormat;

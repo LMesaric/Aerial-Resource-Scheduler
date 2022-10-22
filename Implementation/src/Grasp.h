@@ -11,7 +11,6 @@
 #include <cstdint>
 #include <future>
 #include <list>
-#include <memory>
 
 
 namespace grasp {
@@ -66,7 +65,7 @@ namespace grasp {
 
     [[nodiscard]] IterationResult iteration(
             std::uint32_t anIterationIdx,
-            const std::shared_ptr<const Instance> &anInstance,
+            const Instance *anInstance,
             const Parameters &aParameters,
             std::atomic_bool &aKillSwitch
     ) {
@@ -103,7 +102,7 @@ namespace grasp {
     }
 
     [[nodiscard]] Accumulator searchSequential(
-            const std::shared_ptr<const Instance> &anInstance,
+            const Instance *anInstance,
             const Parameters &aParameters,
             std::atomic_bool &aKillSwitch
     ) {
@@ -118,7 +117,7 @@ namespace grasp {
     }
 
     [[nodiscard]] Accumulator searchParallelized(
-            const std::shared_ptr<const Instance> &anInstance,
+            const Instance *anInstance,
             const Parameters &aParameters,
             std::atomic_bool &aKillSwitch
     ) {

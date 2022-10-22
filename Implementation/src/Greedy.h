@@ -6,7 +6,6 @@
 
 #include <atomic>
 #include <cstdint>
-#include <memory>
 #include <optional>
 #include <random>
 #include <unordered_map>
@@ -108,14 +107,14 @@ namespace greedy {
     }
 
     [[nodiscard]] Schedule createGreedySchedule(
-            std::shared_ptr<const Instance> anInstance,
+            const Instance *anInstance,
             std::atomic_bool &aKillSwitch,
             double anAlpha,
             double aK1,
             double aK2,
             std::mt19937 &aGenerator
     ) {
-        Schedule mySchedule{std::move(anInstance)};
+        Schedule mySchedule{anInstance};
 
         while (auto myTakeoff = pickGreedyTakeoff(mySchedule, anAlpha, aK1, aK2, aGenerator)) {
             mySchedule.insertTakeoff(*myTakeoff);

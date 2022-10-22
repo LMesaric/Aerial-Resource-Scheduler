@@ -9,7 +9,6 @@
 #include <atomic>
 #include <cmath>
 #include <cstdint>
-#include <memory>
 #include <random>
 #include <utility>
 
@@ -130,7 +129,7 @@ namespace local_search {
             myInsertedGreedyTakeoffs.clear();
             myRemovedTakeoffs.clear();
 
-            myTemperature *= aParameters.theTempCoeff;
+            myTemperature *= aParameters.theTempCoef;
         }
 
         return myBestSchedule;

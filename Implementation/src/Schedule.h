@@ -7,7 +7,6 @@
 #include <cassert>
 #include <cstdint>
 #include <iostream>
-#include <memory>
 #include <ostream>
 #include <unordered_set>
 #include <utility>
@@ -61,7 +60,7 @@ namespace std {
 class Schedule {
     static constexpr std::uint8_t IMPOSSIBLE_BLOCKERS_COUNT{2};  // Any value above 0 would work fine.
 
-    std::shared_ptr<const Instance> theInstance{};
+    const Instance *theInstance{};
 
     std::unordered_set<Takeoff> theTakeoffs{};
 
@@ -334,8 +333,8 @@ class Schedule {
 public:
     Schedule() = default;
 
-    explicit Schedule(std::shared_ptr<const Instance> anInstance) :
-            theInstance{std::move(anInstance)},
+    explicit Schedule(const Instance *anInstance) :
+            theInstance{anInstance},
             theTakeoffBlockersCount{
                     theInstance->getVehiclesCnt(),
                     theInstance->getFrontsCnt(),
@@ -463,10 +462,6 @@ public:
 
     [[nodiscard]] const Instance &getInstance() const {
         return *theInstance;
-    }
-
-    [[nodiscard]] std::shared_ptr<const Instance> getInstancePtr() const {
-        return theInstance;
     }
 
     [[nodiscard]] const auto &getTakeoffs() const {

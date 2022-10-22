@@ -1,9 +1,9 @@
 #pragma once
 
+#include "input_parser/InputFormat.h"
+
 #include <cstdint>
 #include <string>
-
-#include "input_parser/InputFormat.h"
 
 
 static const auto STDIN_STDOUT_FILENAME = "-";
@@ -31,5 +31,5 @@ struct Parameters {
     double theK2Repair{1.0};
 
     double theT0{1e12};
-    double theTempCoeff{0.995};
+    double theTempCoef{0.995};
 };

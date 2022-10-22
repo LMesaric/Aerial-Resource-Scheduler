@@ -114,8 +114,8 @@ void assignCLI(CLI::App &app, Parameters &p) {
     )->required(false);
 
     app.add_option(
-            "--temp-coeff",
-            p.theTempCoeff,
+            "--temp-coef",
+            p.theTempCoef,
             "Cooling factor in SA."
     )->required(false);
 }
@@ -162,8 +162,7 @@ int main(int argc, char *argv[]) {
 
     const auto myParser = InputParserFactory(myParameters.theInputFormat).getParser();
     const auto myInstanceRaw = myParser->parse(*myInputStream);
-    const auto myHeapInstance = new Instance(convertInstance(myInstanceRaw));
-    const auto myInstance = std::shared_ptr<const Instance>(myHeapInstance);
+    const auto myInstance = convertInstance(myInstanceRaw);
 
     std::cout << "Finished parsing input!" << std::endl;
 
@@ -184,8 +183,8 @@ int main(int argc, char *argv[]) {
         }
     });
 
-    // const auto myAccumulator = grasp::searchSequential(myInstance, myParameters, myKillSwitch);
-    const auto myAccumulator = grasp::searchParallelized(myInstance, myParameters, myKillSwitch);
+    // const auto myAccumulator = grasp::searchSequential(&myInstance, myParameters, myKillSwitch);
+    const auto myAccumulator = grasp::searchParallelized(&myInstance, myParameters, myKillSwitch);
 
     const std::chrono::duration<double> myElapsedSeconds = std::chrono::steady_clock::now() - myStartTime;
 
