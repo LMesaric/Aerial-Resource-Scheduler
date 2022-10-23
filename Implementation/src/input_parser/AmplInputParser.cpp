@@ -144,8 +144,8 @@ InstanceRaw AmplInputParser::parse(std::istream &aStream) const {
             myInstanceRaw.theFronts[i].theSimultaneousResourcesLimit = mySimultaneousResourcesLimit[i];
         }
 
-        parseDownloadsAllVehicles<double>(aStream, myInstanceRaw, &VehicleRaw::theIntermediateDownloads);
-        parseDownloadsAllVehicles<double>(aStream, myInstanceRaw, &VehicleRaw::theTransitDownloads);
+        parseDownloadsAllVehicles<double>(aStream, myInstanceRaw, &VehicleRaw::theIntermediateDownloadsCount);
+        parseDownloadsAllVehicles<double>(aStream, myInstanceRaw, &VehicleRaw::theTransitDownloadsCount);
 
         REPEAT(4) std::getline(aStream, myLine); // comment; blank; param W; header
 

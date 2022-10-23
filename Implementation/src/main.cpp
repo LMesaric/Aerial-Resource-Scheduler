@@ -216,6 +216,7 @@ int main(int argc, char *argv[]) {
             << "\n_takeoffs_count = " << myAccumulator.theBestSchedule.getTakeoffsCount()
             << "\n_takeoffs_count_max = "
             << myAccumulator.theBestSchedule.getInstance().theMaxTakeoffsCount
+            << "\n_drops_count = " << myAccumulator.theBestSchedule.getTotalDropsCount()
             << "\n_best_iteration = " << myAccumulator.theBestIterationIndex
             << "\n_total_iterations = " << myAccumulator.theCompletedGraspIterationsCount
             << "\n_threads = " << myParameters.theThreadCount

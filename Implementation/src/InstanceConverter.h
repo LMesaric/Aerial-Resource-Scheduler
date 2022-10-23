@@ -20,25 +20,35 @@ Vehicle convertVehicle(const VehicleRaw &aVehicleRaw) {
 
     const auto myCapacity = aVehicleRaw.theWaterCapacity;
 
-    Matrix2<double> myIntermediateDownloads{
-            aVehicleRaw.theIntermediateDownloads.size(),
-            aVehicleRaw.theIntermediateDownloads[0].size()
+    Matrix2<double> myIntermediateDownloadsCount{
+            aVehicleRaw.theIntermediateDownloadsCount.size(),
+            aVehicleRaw.theIntermediateDownloadsCount[0].size()
     };
-    for (std::size_t myFrontId = 0; myFrontId < myIntermediateDownloads.getX(); ++myFrontId) {
-        auto myRow = myIntermediateDownloads[myFrontId];
-        for (std::size_t mySlot = 0; mySlot < myIntermediateDownloads.getY(); ++mySlot) {
-            myRow[mySlot] = myCapacity * aVehicleRaw.theIntermediateDownloads[myFrontId][mySlot];
+    Matrix2<double> myIntermediateDownloadsVolume{
+            aVehicleRaw.theIntermediateDownloadsCount.size(),
+            aVehicleRaw.theIntermediateDownloadsCount[0].size()
+    };
+    for (std::size_t myFrontId = 0; myFrontId < myIntermediateDownloadsVolume.getX(); ++myFrontId) {
+        for (std::size_t mySlot = 0; mySlot < myIntermediateDownloadsVolume.getY(); ++mySlot) {
+            auto myCount = aVehicleRaw.theIntermediateDownloadsCount[myFrontId][mySlot];
+            myIntermediateDownloadsCount[myFrontId][mySlot] = myCount;
+            myIntermediateDownloadsVolume[myFrontId][mySlot] = myCapacity * myCount;
         }
     }
 
-    Matrix2<double> myTransitDownloads{
-            aVehicleRaw.theTransitDownloads.size(),
-            aVehicleRaw.theTransitDownloads[0].size()
+    Matrix2<double> myTransitDownloadsCount{
+            aVehicleRaw.theTransitDownloadsCount.size(),
+            aVehicleRaw.theTransitDownloadsCount[0].size()
     };
-    for (std::size_t myFrontId = 0; myFrontId < myTransitDownloads.getX(); ++myFrontId) {
-        auto myRow = myTransitDownloads[myFrontId];
-        for (std::size_t mySlot = 0; mySlot < myTransitDownloads.getY(); ++mySlot) {
-            myRow[mySlot] = myCapacity * aVehicleRaw.theTransitDownloads[myFrontId][mySlot];
+    Matrix2<double> myTransitDownloadsVolume{
+            aVehicleRaw.theTransitDownloadsCount.size(),
+            aVehicleRaw.theTransitDownloadsCount[0].size()
+    };
+    for (std::size_t myFrontId = 0; myFrontId < myTransitDownloadsVolume.getX(); ++myFrontId) {
+        for (std::size_t mySlot = 0; mySlot < myTransitDownloadsVolume.getY(); ++mySlot) {
+            auto myCount = aVehicleRaw.theTransitDownloadsCount[myFrontId][mySlot];
+            myTransitDownloadsCount[myFrontId][mySlot] = myCount;
+            myTransitDownloadsVolume[myFrontId][mySlot] = myCapacity * myCount;
         }
     }
 
@@ -49,8 +59,10 @@ Vehicle convertVehicle(const VehicleRaw &aVehicleRaw) {
             .theFlightCountLimit=aVehicleRaw.theFlightCountLimit,
             .theAvailability=myAvailability,
             .theTransitTimes=aVehicleRaw.theTransitTimes,
-            .theIntermediateDownloads=std::move(myIntermediateDownloads),
-            .theTransitDownloads=std::move(myTransitDownloads),
+            .theIntermediateDownloadsCount=std::move(myIntermediateDownloadsCount),
+            .theTransitDownloadsCount=std::move(myTransitDownloadsCount),
+            .theIntermediateDownloadsVolume=std::move(myIntermediateDownloadsVolume),
+            .theTransitDownloadsVolume=std::move(myTransitDownloadsVolume),
             .theIsHelicopter=aVehicleRaw.theIsHelicopter
     };
 }

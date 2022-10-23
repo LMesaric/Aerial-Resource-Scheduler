@@ -24,8 +24,8 @@ struct VehicleRaw {
     std::vector<bool> theAvailability;
 
     std::vector<std::uint32_t> theTransitTimes;
-    std::vector<DownloadsPerSlot> theIntermediateDownloads;
-    std::vector<DownloadsPerSlot> theTransitDownloads;
+    std::vector<DownloadsPerSlot> theIntermediateDownloadsCount;
+    std::vector<DownloadsPerSlot> theTransitDownloadsCount;
 
     bool theIsHelicopter;
 };

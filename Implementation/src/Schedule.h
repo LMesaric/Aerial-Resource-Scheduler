@@ -61,18 +61,12 @@ class Schedule {
     static constexpr std::uint8_t IMPOSSIBLE_BLOCKERS_COUNT{2};  // Any value above 0 would work fine.
 
     const Instance *theInstance{};
-
     std::unordered_set<Takeoff> theTakeoffs{};
-
     Matrix3<std::uint8_t> theTakeoffBlockersCount{};
-
-    // Negative if target is not met, positive if there is surplus.
-    Matrix2<double> theWaterTargetSurplus{};
-
+    Matrix2<double> theWaterTargetSurplus{};  // Negative if target is not met, positive if there is surplus.
     double theTotalWaterOutput{0.0};
-
+    double theTotalDropsCount{0.0};
     Matrix2<std::uint32_t> theRemainingSimultaneousResources{};
-
     std::vector<std::uint32_t> theRemainingTakeoffsPerVehicle{};
 
     void initWaterTarget() {
@@ -262,20 +256,24 @@ class Schedule {
 
         // In case when myFirstSlotOnFront == myLastSlotOnFront, the amount of water should be even lower
         // than this due to a slot being in two-way transit.
-        auto myTransitDownloadsRow = myVehicle.theTransitDownloads[aTakeoff.theFrontId];
+        auto myTransitDownloadsCountRow = myVehicle.theTransitDownloadsCount[aTakeoff.theFrontId];
+        auto myTransitDownloadsVolumeRow = myVehicle.theTransitDownloadsVolume[aTakeoff.theFrontId];
         std::array<std::int32_t, 2> myTransitSlots{myFirstSlotOnFront, myLastSlotOnFront};
         for (std::size_t i = myFirstSlotOnFront == myLastSlotOnFront; i < myTransitSlots.size(); i++) {
             const auto mySlot = myTransitSlots[i];
-            const double myDrop = myTransitDownloadsRow[mySlot] * aFactor;
-            myWaterTargetSurplusRow[mySlot] += myDrop;
-            theTotalWaterOutput += myDrop;
+            theTotalDropsCount += myTransitDownloadsCountRow[mySlot] * aFactor;
+            const double myDropVolume = myTransitDownloadsVolumeRow[mySlot] * aFactor;
+            myWaterTargetSurplusRow[mySlot] += myDropVolume;
+            theTotalWaterOutput += myDropVolume;
         }
 
-        auto myIntermediateDownloadsRow = myVehicle.theIntermediateDownloads[aTakeoff.theFrontId];
+        auto myIntermediateDownloadsCountRow = myVehicle.theIntermediateDownloadsCount[aTakeoff.theFrontId];
+        auto myIntermediateDownloadsVolumeRow = myVehicle.theIntermediateDownloadsVolume[aTakeoff.theFrontId];
         for (auto mySlot = myFirstSlotOnFront + 1; mySlot < myLastSlotOnFront; ++mySlot) {
-            const double myDrop = myIntermediateDownloadsRow[mySlot] * aFactor;
-            myWaterTargetSurplusRow[mySlot] += myDrop;
-            theTotalWaterOutput += myDrop;
+            theTotalDropsCount += myIntermediateDownloadsCountRow[mySlot] * aFactor;
+            const double myDropVolume = myIntermediateDownloadsVolumeRow[mySlot] * aFactor;
+            myWaterTargetSurplusRow[mySlot] += myDropVolume;
+            theTotalWaterOutput += myDropVolume;
         }
 
         const std::size_t myFlightAndRestDuration = myVehicle.theFlightDurationLimit + myVehicle.theRestLimit;
@@ -490,5 +488,9 @@ public:
 
     [[nodiscard]] auto getTotalWaterOutput() const {
         return theTotalWaterOutput;
+    }
+
+    [[nodiscard]] auto getTotalDropsCount() const {
+        return theTotalDropsCount;
     }
 };

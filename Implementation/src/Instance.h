@@ -23,8 +23,10 @@ struct Vehicle {
     std::vector<char> theAvailability{};
 
     std::vector<std::uint32_t> theTransitTimes{};
-    Matrix2<double> theIntermediateDownloads;
-    Matrix2<double> theTransitDownloads;
+    Matrix2<double> theIntermediateDownloadsCount;
+    Matrix2<double> theTransitDownloadsCount;
+    Matrix2<double> theIntermediateDownloadsVolume;
+    Matrix2<double> theTransitDownloadsVolume;
 
     bool theIsHelicopter{};
 };

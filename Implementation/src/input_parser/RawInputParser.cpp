@@ -78,8 +78,8 @@ InstanceRaw RawInputParser::parse(std::istream &aStream) const {
         aStream >> myFront.theSimultaneousResourcesLimit;
     }
 
-    parseDownloadsAllVehicles(aStream, myInstanceRaw, &VehicleRaw::theIntermediateDownloads);
-    parseDownloadsAllVehicles(aStream, myInstanceRaw, &VehicleRaw::theTransitDownloads);
+    parseDownloadsAllVehicles(aStream, myInstanceRaw, &VehicleRaw::theIntermediateDownloadsCount);
+    parseDownloadsAllVehicles(aStream, myInstanceRaw, &VehicleRaw::theTransitDownloadsCount);
 
     for (auto &myFront: myInstanceRaw.theFronts) {
         myFront.theTargetWaterContent.resize(myInstanceRaw.theTimeSlotsCount);
