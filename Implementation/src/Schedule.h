@@ -58,6 +58,9 @@ namespace std {
 
 
 class Schedule {
+    enum class ModifyTakeoffMode {
+        ADD, REMOVE
+    };
     static constexpr std::uint8_t IMPOSSIBLE_BLOCKERS_COUNT{2};  // Any value above 0 would work fine.
 
     const Instance *theInstance{};
@@ -233,9 +236,8 @@ class Schedule {
         return myTakeoffsCnt;
     }
 
-    template<int aFactor>
-    void modifyTakeoff(const Takeoff &aTakeoff) {
-        static_assert(aFactor == 1 || aFactor == -1, "Unexpected factor");
+    void modifyTakeoff(const Takeoff &aTakeoff, ModifyTakeoffMode aMode) {
+        const int aFactor = aMode == ModifyTakeoffMode::ADD ? +1 : -1;
 
         const auto &myVehicle = theInstance->theVehicles[aTakeoff.theVehicleId];
 
@@ -377,13 +379,13 @@ public:
     void insertTakeoff(const Takeoff &aTakeoff) {
         assert(((void) "Illegal takeoff inserted", isLegalTakeoff(aTakeoff)));
         theTakeoffs.insert(aTakeoff);
-        modifyTakeoff<+1>(aTakeoff);
+        modifyTakeoff(aTakeoff, ModifyTakeoffMode::ADD);
     }
 
     void removeTakeoff(const Takeoff &aTakeoff) {
         assert(((void) "Nonexistent takeoff removed", theTakeoffs.contains(aTakeoff)));
         theTakeoffs.erase(aTakeoff);
-        modifyTakeoff<-1>(aTakeoff);
+        modifyTakeoff(aTakeoff, ModifyTakeoffMode::REMOVE);
     }
 
     [[nodiscard]] Matrix3<std::uint8_t> buildTakeoffsMatrix() const {
