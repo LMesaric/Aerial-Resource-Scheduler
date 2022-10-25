@@ -51,9 +51,9 @@ struct Instance {
     std::size_t theMaxTakeoffsCount{};
 
     Instance(std::size_t aTimeSlotsCount,
-               std::vector<Vehicle> aVehicles,
-               std::vector<Front> aFronts,
-               double anA1, double anA2, double anA3) :
+             std::vector<Vehicle> aVehicles,
+             std::vector<Front> aFronts,
+             double anA1, double anA2, double anA3) :
             theTimeSlotsCount{aTimeSlotsCount},
             theVehicles{std::move(aVehicles)},
             theFronts{std::move(aFronts)},

@@ -25,7 +25,7 @@ namespace {
             aSchedule.insertTakeoff(myTakeoff);
         }
 
-        const auto [myMinIt, myMaxIt] = std::minmax_element(myTakeoffsObjectives.begin(), myTakeoffsObjectives.end());
+        const auto[myMinIt, myMaxIt] = std::minmax_element(myTakeoffsObjectives.begin(), myTakeoffsObjectives.end());
         const double myMinFit = *myMinIt;
         const double myMaxFit = *myMaxIt;
 
@@ -89,7 +89,7 @@ namespace local_search {
             while (true) {
                 std::optional<Takeoff> myInsertedGreedyTakeoff = greedy::pickGreedyTakeoff(
                         myCurrentSchedule,
-                        aParameters.theAlphaRepair,
+                        aParameters.theAlphaGreedy,
                         aParameters.theK1Repair,
                         aParameters.theK2Repair,
                         aGenerator

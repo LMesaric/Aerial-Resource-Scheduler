@@ -13,7 +13,7 @@
 
 namespace {
     void scaleVector(std::vector<double> &aVector) {
-        const auto [myMinIt, myMaxIt] = std::minmax_element(aVector.begin(), aVector.end());
+        const auto[myMinIt, myMaxIt] = std::minmax_element(aVector.begin(), aVector.end());
         const double myMin = *myMinIt;
         const double myMax = *myMaxIt;
 
@@ -22,9 +22,9 @@ namespace {
             return;
         }
 
-        const auto myDelta = myMax - myMin;
+        const auto myInverseDelta = 1.0 / (myMax - myMin);
         for (auto &myElement: aVector) {
-            myElement = (myElement - myMin) / myDelta;
+            myElement = (myElement - myMin) * myInverseDelta;
         }
     }
 
@@ -43,7 +43,7 @@ namespace {
     std::size_t stochasticallySelectFromRcl(
             const std::vector<double> &aFitness, double anAlpha, std::mt19937 &aGenerator
     ) {
-        const auto [myMinIt, myMaxIt] = std::minmax_element(aFitness.begin(), aFitness.end());
+        const auto[myMinIt, myMaxIt] = std::minmax_element(aFitness.begin(), aFitness.end());
         const double myMinFit = *myMinIt;
         const double myMaxFit = *myMaxIt;
         const double myThreshold = myMaxFit - anAlpha * (myMaxFit - myMinFit);

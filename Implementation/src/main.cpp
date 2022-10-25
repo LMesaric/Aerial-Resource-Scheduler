@@ -73,19 +73,13 @@ void assignCLI(CLI::App &app, Parameters &p) {
     app.add_option(
             "--alpha-g",
             p.theAlphaGreedy,
-            "Alpha value for RCL in greedy construction."
+            "Alpha value for RCL in greedy construction and repair method."
     )->required(false);
 
     app.add_option(
             "--alpha-d",
             p.theAlphaDestroy,
             "Alpha value for RCL in destroy method."
-    )->required(false);
-
-    app.add_option(
-            "--alpha-r",
-            p.theAlphaRepair,
-            "Alpha value for RCL in greedy part of repair method."
     )->required(false);
 
     app.add_option(
