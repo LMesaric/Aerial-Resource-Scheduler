@@ -83,30 +83,6 @@ void assignCLI(CLI::App &app, Parameters &p) {
     )->required(false);
 
     app.add_option(
-            "--kr-g",
-            p.theK1Greedy,
-            "Kr weight in greedy construction."
-    )->required(false);
-
-    app.add_option(
-            "--kp-g",
-            p.theK2Greedy,
-            "Kp weight in greedy construction."
-    )->required(false);
-
-    app.add_option(
-            "--kr-r",
-            p.theK1Repair,
-            "Kr weight in greedy part of repair method."
-    )->required(false);
-
-    app.add_option(
-            "--kp-r",
-            p.theK2Repair,
-            "Kp weight in greedy part of repair method."
-    )->required(false);
-
-    app.add_option(
             "--t0",
             p.theT0,
             "Starting temperature T0 in SA."
@@ -175,8 +151,10 @@ int main(int argc, char *argv[]) {
         }
     });
 
-    // const auto myAccumulator = grasp::searchSequential(&myInstance, myParameters, myKillSwitch);
-    const auto myAccumulator = grasp::searchParallelized(&myInstance, myParameters, myKillSwitch);
+    const auto myAccumulator =
+            myParameters.theThreadCount > 1
+            ? grasp::searchParallelized(&myInstance, myParameters, myKillSwitch)
+            : grasp::searchSequential(&myInstance, myParameters, myKillSwitch);
 
     const std::chrono::duration<double> myElapsedSeconds = std::chrono::steady_clock::now() - myStartTime;
 

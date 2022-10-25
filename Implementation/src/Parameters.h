@@ -24,11 +24,6 @@ struct Parameters {
     double theAlphaGreedy{0.1};
     double theAlphaDestroy{0.75};
 
-    double theK1Greedy{4.0};
-    double theK2Greedy{4.0};
-    double theK1Repair{1.0};
-    double theK2Repair{1.0};
-
     double theT0{1e12};
     double theTempCoef{0.995};
 };

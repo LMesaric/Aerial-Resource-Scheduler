@@ -5,6 +5,7 @@
 #include "Schedule.h"
 
 #include <atomic>
+#include <cmath>
 #include <cstdint>
 #include <optional>
 #include <random>
@@ -63,9 +64,7 @@ namespace {
 }
 
 namespace greedy {
-    std::optional<Takeoff> pickGreedyTakeoff(
-            Schedule &aSchedule, double anAlpha, double aK1, double aK2, std::mt19937 &aGenerator
-    ) {
+    std::optional<Takeoff> pickGreedyTakeoff(Schedule &aSchedule, double anAlpha, std::mt19937 &aGenerator) {
         const auto myTakeoffs = aSchedule.findAllLegalTakeoffs();
 
         if (myTakeoffs.empty()) {
@@ -85,21 +84,24 @@ namespace greedy {
             aSchedule.insertTakeoff(myTakeoff);
 
             myObjectiveValues[i] = evaluateObjective(aSchedule);
-            myReducedTakeoffCounts[i] = aK2 != 0.0 ? aSchedule.findAllLegalTakeoffsCount() : 0.0;
+            myReducedTakeoffCounts[i] = aSchedule.findAllLegalTakeoffsCount();
 
             aSchedule.removeTakeoff(myTakeoff);
         }
 
-        scaleVector(myTakeoffsPerVehicle);
         scaleVector(myObjectiveValues);
+        scaleVector(myTakeoffsPerVehicle);
         scaleVector(myReducedTakeoffCounts);
+
+        const auto myMaxTakeoffsCountDelta = aSchedule.getInstance().theMaxTakeoffsCount - aSchedule.getTakeoffsCount();
+        const double myFitnessWeight = 0.2 * std::sqrt((float) myMaxTakeoffsCountDelta - 1.f);
 
         std::vector<double> myFitness(myTakeoffs.size());
         for (std::size_t i = 0; i < myTakeoffs.size(); ++i) {
             const auto &myTakeoff = myTakeoffs[i];
             myFitness[i] = myObjectiveValues[i]
-                           - aK1 * myTakeoffsPerVehicle[myTakeoff.theVehicleId]
-                           + aK2 * myReducedTakeoffCounts[i];
+                           - myFitnessWeight * myTakeoffsPerVehicle[myTakeoff.theVehicleId]
+                           + myFitnessWeight * myReducedTakeoffCounts[i];
         }
 
         const auto myIdx = stochasticallySelectFromRcl(myFitness, anAlpha, aGenerator);
@@ -110,13 +112,11 @@ namespace greedy {
             const Instance *anInstance,
             std::atomic_bool &aKillSwitch,
             double anAlpha,
-            double aK1,
-            double aK2,
             std::mt19937 &aGenerator
     ) {
         Schedule mySchedule{anInstance};
 
-        while (auto myTakeoff = pickGreedyTakeoff(mySchedule, anAlpha, aK1, aK2, aGenerator)) {
+        while (auto myTakeoff = pickGreedyTakeoff(mySchedule, anAlpha, aGenerator)) {
             mySchedule.insertTakeoff(*myTakeoff);
             if (aKillSwitch) {
                 break;

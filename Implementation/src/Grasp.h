@@ -79,8 +79,6 @@ namespace grasp {
                 anInstance,
                 aKillSwitch,
                 aParameters.theAlphaGreedy,
-                aParameters.theK1Greedy,
-                aParameters.theK2Greedy,
                 myGenerator
         );
         myResult.theGreedyObjective = evaluateObjective(myGreedySchedule);

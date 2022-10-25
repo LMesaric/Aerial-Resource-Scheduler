@@ -90,8 +90,6 @@ namespace local_search {
                 std::optional<Takeoff> myInsertedGreedyTakeoff = greedy::pickGreedyTakeoff(
                         myCurrentSchedule,
                         aParameters.theAlphaGreedy,
-                        aParameters.theK1Repair,
-                        aParameters.theK2Repair,
                         aGenerator
                 );
                 if (!myInsertedGreedyTakeoff) {
