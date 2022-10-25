@@ -8,12 +8,17 @@
 #include <atomic>
 #include <chrono>
 #include <CLI11.hpp>
+#include <cmath>
 #include <iostream>
 #include <map>
 #include <string>
 #include <thread>
 #include <vector>
 
+#include <nlohmann/json.hpp>
+
+
+using ordered_json = nlohmann::ordered_json;
 
 void assignCLI(CLI::App &app, Parameters &p) {
     app.add_option(
@@ -120,13 +125,6 @@ void assignCLI(CLI::App &app, Parameters &p) {
     )->required(false);
 }
 
-template<typename T>
-std::string concatenate(const std::vector<T> &aVec, const std::string &aDelimiter = " ") {
-    std::ostringstream myOutputStream;
-    copy(aVec.begin(), aVec.end(), std::ostream_iterator<T>(myOutputStream, aDelimiter.c_str()));
-    return myOutputStream.str();
-}
-
 int main(int argc, char *argv[]) {
     const auto myStartTime = std::chrono::steady_clock::now();
 
@@ -193,47 +191,43 @@ int main(int argc, char *argv[]) {
 
     const auto myGreedyBestObjective = *std::max_element(
             myAccumulator.theGreedyObjectives.begin(), myAccumulator.theGreedyObjectives.end());
-    const auto [myGreedyMean, myGreedyStdDev] = statistics::meanAndDev(myAccumulator.theGreedyObjectives);
-    const auto [myLsMean, myLsStdDev] = statistics::meanAndDev(myAccumulator.theLsObjectives);
-    const auto [myIterationDurationMean, myIterationDurationStdDev] = statistics::meanAndDev(
+    const auto[myGreedyMean, myGreedyStdDev] = statistics::meanAndDev(myAccumulator.theGreedyObjectives);
+    const auto[myLsMean, myLsStdDev] = statistics::meanAndDev(myAccumulator.theLsObjectives);
+    const auto[myIterationDurationMean, myIterationDurationStdDev] = statistics::meanAndDev(
             myAccumulator.theIterationDurations);
-    const auto [myGreedyDurationMean, myGreedyDurationStdDev] = statistics::meanAndDev(
+    const auto[myGreedyDurationMean, myGreedyDurationStdDev] = statistics::meanAndDev(
             myAccumulator.theGreedyDurations);
-    const auto [myLsDurationMean, myLsDurationStdDev] = statistics::meanAndDev(myAccumulator.theLsDurations);
+    const auto[myLsDurationMean, myLsDurationStdDev] = statistics::meanAndDev(myAccumulator.theLsDurations);
 
-    std::ostringstream myOutputDataOverview;
-    myOutputDataOverview
-            << std::fixed
-            << std::setprecision(0)
-            << "WO = " << myAccumulator.theBestSchedule.getTotalWaterOutput()
-            << std::setprecision(2)
-            << "\nSum_WSn = " << myAccumulator.theBestSchedule.getNegativeSurplusSum()
-            << "\nZ = " << myAccumulator.theBestSchedule.getMinimumSurplus()
-            << std::setprecision(13)
-            << "\nobjective = " << myAccumulator.theBestObjective
-            << std::setprecision(6)
-            << "\n_solve_wall_time = " << myElapsedSeconds.count()
-            << "\n_takeoffs_count = " << myAccumulator.theBestSchedule.getTakeoffsCount()
-            << "\n_takeoffs_count_max = "
-            << myAccumulator.theBestSchedule.getInstance().theMaxTakeoffsCount
-            << "\n_drops_count = " << myAccumulator.theBestSchedule.getTotalDropsCount()
-            << "\n_best_iteration = " << myAccumulator.theBestIterationIndex
-            << "\n_total_iterations = " << myAccumulator.theCompletedGraspIterationsCount
-            << "\n_threads = " << myParameters.theThreadCount
-            << "\n_objective_greedy_best = " << myGreedyBestObjective
-            << "\n_objective_greedy_avg = " << myGreedyMean
-            << "\n_objective_greedy_stddev = " << myGreedyStdDev
-            << "\n_objective_ls_avg = " << myLsMean
-            << "\n_objective_ls_stddev = " << myLsStdDev
-            << "\n_duration_iteration_avg = " << myIterationDurationMean
-            << "\n_duration_iteration_stddev = " << myIterationDurationStdDev
-            << "\n_duration_greedy_avg = " << myGreedyDurationMean
-            << "\n_duration_greedy_stddev = " << myGreedyDurationStdDev
-            << "\n_duration_ls_avg = " << myLsDurationMean
-            << "\n_duration_ls_stddev = " << myLsDurationStdDev
-            << "\n_durations_iteration = " << concatenate(myAccumulator.theIterationDurations)
-            << "\n_durations_greedy = " << concatenate(myAccumulator.theGreedyDurations)
-            << "\n_durations_ls = " << concatenate(myAccumulator.theLsDurations);
+    ordered_json myOutputDataOverviewJson = {
+            {"WO",                         (std::int64_t) round(myAccumulator.theBestSchedule.getTotalWaterOutput())},
+            {"Sum_WSn",                    round(myAccumulator.theBestSchedule.getNegativeSurplusSum() * 1e2) / 1e2},
+            {"Z",                          round(myAccumulator.theBestSchedule.getMinimumSurplus() * 1e2) / 1e2},
+            {"objective",                  myAccumulator.theBestObjective},
+            {"_solve_wall_time",           myElapsedSeconds.count()},
+            {"_takeoffs_count",            myAccumulator.theBestSchedule.getTakeoffsCount()},
+            {"_takeoffs_count_max",        myAccumulator.theBestSchedule.getInstance().theMaxTakeoffsCount},
+            {"_drops_count",               round(myAccumulator.theBestSchedule.getTotalDropsCount() * 1e2) / 1e2},
+            {"_best_iteration",            myAccumulator.theBestIterationIndex},
+            {"_total_iterations",          myAccumulator.theCompletedGraspIterationsCount},
+            {"_threads",                   myParameters.theThreadCount},
+            {"_objective_greedy_best",     myGreedyBestObjective},
+            {"_objective_greedy_avg",      myGreedyMean},
+            {"_objective_greedy_stddev",   myGreedyStdDev},
+            {"_objective_ls_avg",          myLsMean},
+            {"_objective_ls_stddev",       myLsStdDev},
+            {"_duration_iteration_avg",    myIterationDurationMean},
+            {"_duration_iteration_stddev", myIterationDurationStdDev},
+            {"_duration_greedy_avg",       myGreedyDurationMean},
+            {"_duration_greedy_stddev",    myGreedyDurationStdDev},
+            {"_duration_ls_avg",           myLsDurationMean},
+            {"_duration_ls_stddev",        myLsDurationStdDev},
+            {"_durations_iteration",       myAccumulator.theIterationDurations},
+            {"_durations_greedy",          myAccumulator.theGreedyDurations},
+            {"_durations_ls",              myAccumulator.theLsDurations},
+    };
+
+    std::string myOutputDataOverview = myOutputDataOverviewJson.dump(2);
 
     std::ostringstream myOutputDataSchedule;
     myOutputDataSchedule
@@ -245,9 +239,9 @@ int main(int argc, char *argv[]) {
             << "\nTakeoffs:\n" << myAccumulator.theBestSchedule.buildTakeoffsMatrix()
             << "\nWS:\n" << myAccumulator.theBestSchedule.getWaterTargetSurplus();
 
-    std::cout << "\n\n" << myOutputDataSchedule.str() << "\n" << myOutputDataOverview.str() << std::endl;
+    std::cout << "\n\n" << myOutputDataSchedule.str() << "\n" << myOutputDataOverview << std::endl;
     if (myOutputFile.is_open()) {
-        myOutputFile << myOutputDataOverview.str() << "\n\n" << myOutputDataSchedule.str() << std::endl;
+        myOutputFile << myOutputDataOverview << "\n\n" << myOutputDataSchedule.str() << std::endl;
     }
 
     return 0;
