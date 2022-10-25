@@ -3,6 +3,7 @@
 #include "Objective.h"
 #include "Schedule.h"
 
+#include <atomic>
 #include <cfloat>
 #include <unordered_set>
 #include <vector>

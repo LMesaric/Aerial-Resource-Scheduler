@@ -23,7 +23,6 @@ add_executable(
         Schedule.h
         Objective.h
         Greedy.h
-        Optimal.h
         LocalSearch.h
         Grasp.h
         Statistics.h
