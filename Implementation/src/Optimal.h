@@ -23,7 +23,7 @@ std::pair<std::vector<Takeoff>, double> recursiveFindOptimalCompletion( // NOLIN
     const auto myTakeoffs = aSchedule.findAllLegalTakeoffs();
 
     if (myTakeoffs.empty()) {
-        return {{}, evaluateObjective(aSchedule)};
+        return {{}, objective::evaluateObjective(aSchedule)};
     }
 
     std::vector<Takeoff> myOptimalTakeoffs{};
@@ -39,7 +39,7 @@ std::pair<std::vector<Takeoff>, double> recursiveFindOptimalCompletion( // NOLIN
 
         aSchedule.insertTakeoff(myTakeoff);
 
-        auto [myOptimalTakeoffsTmp, myObjectiveValueTmp] = recursiveFindOptimalCompletion(
+        auto[myOptimalTakeoffsTmp, myObjectiveValueTmp] = recursiveFindOptimalCompletion(
                 aSchedule, anIgnoreTakeoffs, aKillSwitch
         );
 

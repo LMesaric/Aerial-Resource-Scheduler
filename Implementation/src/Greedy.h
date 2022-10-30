@@ -83,7 +83,7 @@ namespace greedy {
 
             aSchedule.insertTakeoff(myTakeoff);
 
-            myObjectiveValues[i] = evaluateObjective(aSchedule);
+            myObjectiveValues[i] = objective::evaluateObjective(aSchedule);
             myReducedTakeoffCounts[i] = aSchedule.findAllLegalTakeoffsCount();
 
             aSchedule.removeTakeoff(myTakeoff);

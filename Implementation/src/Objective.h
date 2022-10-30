@@ -1,25 +1,49 @@
 #pragma once
 
-#include "Matrix.h"
 #include "Schedule.h"
 
 #include <cfloat>
 
 
-double evaluateObjective(const Schedule &aSchedule) {
-    // Not using methods from Schedule for increased performance.
-
-    double myNegativeSum = 0.0;
-    double myMinSurplus = +DBL_MAX;
-
-    for (const double mySurplus: aSchedule.getWaterTargetSurplus().getRawData()) {
-        myNegativeSum += std::min(0.0, mySurplus);
-        myMinSurplus = std::min(myMinSurplus, mySurplus);
+namespace objective {
+    inline double combineObjectives(double aNegativeSum, double aMinSurplus, double aTotalWaterOutput,
+                                    const ObjectiveFunctionMultipliers &aMultipliers) {
+        return aMultipliers.theA1 * aNegativeSum
+               + aMultipliers.theA2 * aMinSurplus
+               + aMultipliers.theA3 * aTotalWaterOutput;
     }
 
-    const auto &myMultipliers = aSchedule.getInstance().theObjectiveFunctionMultipliers;
+    struct Components {
+        double theNegativeSum{};
+        double theMinSurplus{};
+        double theTotalWaterOutput{};
+        double theObjective{};
 
-    return myMultipliers.theA1 * myNegativeSum
-           + myMultipliers.theA2 * myMinSurplus
-           + myMultipliers.theA3 * aSchedule.getTotalWaterOutput();
+        Components() = default;
+
+        explicit Components(const Schedule &aSchedule) :
+                theNegativeSum(aSchedule.getNegativeSurplusSum()),
+                theMinSurplus(aSchedule.getMinimumSurplus()),
+                theTotalWaterOutput(aSchedule.getTotalWaterOutput()),
+                theObjective(combineObjectives(theNegativeSum, theMinSurplus, theTotalWaterOutput,
+                                               aSchedule.getInstance().theObjectiveFunctionMultipliers)) {}
+    };
+
+    double evaluateObjective(const Schedule &aSchedule) {
+        // Not using methods from Schedule for increased performance.
+
+        double myNegativeSum = 0.0;
+        double myMinSurplus = +DBL_MAX;
+
+        for (const double mySurplus: aSchedule.getWaterTargetSurplus().getRawData()) {
+            myNegativeSum += std::min(0.0, mySurplus);
+            myMinSurplus = std::min(myMinSurplus, mySurplus);
+        }
+
+        return combineObjectives(
+                myNegativeSum,
+                myMinSurplus,
+                aSchedule.getTotalWaterOutput(),
+                aSchedule.getInstance().theObjectiveFunctionMultipliers);
+    }
 }

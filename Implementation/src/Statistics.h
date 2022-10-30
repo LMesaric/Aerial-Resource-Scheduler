@@ -29,4 +29,11 @@ namespace statistics {
         const auto myStdDev = statistics::stdDev(aData, myMean);
         return {myMean, myStdDev};
     }
+
+    std::pair<double, double> meanAndDevTransform(const std::vector<objective::Components> &aData) {
+        std::vector<double> myDoublesData;
+        std::transform(aData.cbegin(), aData.cend(), std::back_inserter(myDoublesData),
+                       [](const objective::Components &c) { return c.theObjective; });
+        return meanAndDev(myDoublesData);
+    }
 }

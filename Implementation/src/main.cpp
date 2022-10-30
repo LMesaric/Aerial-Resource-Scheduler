@@ -20,6 +20,29 @@
 
 using ordered_json = nlohmann::ordered_json;
 
+namespace objective {
+    void to_json(ordered_json &j, const Components &c) {
+        j = ordered_json{
+                {"wsn", c.theNegativeSum},
+                {"z",   c.theMinSurplus},
+                {"wo",  c.theTotalWaterOutput},
+                {"obj", c.theObjective},
+        };
+    }
+}
+
+namespace local_search {
+    void to_json(ordered_json &j, const ObjectiveComponentsSnapshot &ocs) {
+        j = ordered_json{
+                {"iter", ocs.theIteration},
+                {"wsn",  ocs.theNegativeSum},
+                {"z",    ocs.theMinSurplus},
+                {"wo",   ocs.theTotalWaterOutput},
+                {"obj",  ocs.theObjective},
+        };
+    }
+}
+
 void assignCLI(CLI::App &app, Parameters &p) {
     app.add_option(
             "-i,--input",
@@ -162,9 +185,14 @@ int main(int argc, char *argv[]) {
     myTimeoutThread.join();
 
     const auto myGreedyBestObjective = *std::max_element(
-            myAccumulator.theGreedyObjectives.begin(), myAccumulator.theGreedyObjectives.end());
-    const auto[myGreedyMean, myGreedyStdDev] = statistics::meanAndDev(myAccumulator.theGreedyObjectives);
-    const auto[myLsMean, myLsStdDev] = statistics::meanAndDev(myAccumulator.theLsObjectives);
+            myAccumulator.theGreedyObjectiveComponents.begin(), myAccumulator.theGreedyObjectiveComponents.end(),
+            [](const objective::Components &c1, const objective::Components &c2) {
+                return c1.theObjective < c2.theObjective;
+            });
+    const auto[myGreedyMean, myGreedyStdDev] = statistics::meanAndDevTransform(
+            myAccumulator.theGreedyObjectiveComponents);
+    const auto[myLsMean, myLsStdDev] = statistics::meanAndDevTransform(
+            myAccumulator.theLsObjectiveComponents);
     const auto[myIterationDurationMean, myIterationDurationStdDev] = statistics::meanAndDev(
             myAccumulator.theIterationDurations);
     const auto[myGreedyDurationMean, myGreedyDurationStdDev] = statistics::meanAndDev(
@@ -197,6 +225,9 @@ int main(int argc, char *argv[]) {
             {"_durations_iteration",       myAccumulator.theIterationDurations},
             {"_durations_greedy",          myAccumulator.theGreedyDurations},
             {"_durations_ls",              myAccumulator.theLsDurations},
+            {"_all_objectives_greedy",     myAccumulator.theGreedyObjectiveComponents},
+            {"_all_objectives_ls",         myAccumulator.theLsObjectiveComponents},
+            {"_annealing_snapshots",       myAccumulator.theBestObjectiveSnapshots},
     };
 
     std::string myOutputDataOverview = myOutputDataOverviewJson.dump(2);

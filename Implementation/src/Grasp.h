@@ -3,6 +3,7 @@
 #include "BS_thread_pool.hpp"
 #include "Greedy.h"
 #include "LocalSearch.h"
+#include "Objective.h"
 #include "Parameters.h"
 
 #include <atomic>
@@ -15,12 +16,13 @@
 
 namespace grasp {
     struct IterationResult {
+        std::uint32_t theIterationIndex{};
         Schedule theSchedule;
-        double theGreedyObjective{};
+        std::vector<local_search::ObjectiveComponentsSnapshot> theBestObjectiveSnapshots{};
+        objective::Components theGreedyObjectiveComponents{};
         double theIterationDurationSeconds{};
         double theGreedyDurationSeconds{};
         double theLsDurationSeconds{};
-        std::uint32_t theIterationIndex{};
     };
 
     struct Accumulator {
@@ -30,8 +32,9 @@ namespace grasp {
         std::uint32_t theBestIterationIndex{};
         std::uint32_t theCompletedGraspIterationsCount{};
 
-        std::vector<double> theGreedyObjectives{};
-        std::vector<double> theLsObjectives{};
+        std::vector<std::vector<local_search::ObjectiveComponentsSnapshot>> theBestObjectiveSnapshots{};
+        std::vector<objective::Components> theGreedyObjectiveComponents{};
+        std::vector<objective::Components> theLsObjectiveComponents{};
         std::vector<double> theIterationDurations{};
         std::vector<double> theGreedyDurations{};
         std::vector<double> theLsDurations{};
@@ -39,19 +42,21 @@ namespace grasp {
         bool updateSchedule(IterationResult aResult) {
             ++theCompletedGraspIterationsCount;
 
-            const double myObjective = evaluateObjective(aResult.theSchedule);
+            const auto myLsObjectiveComponents = objective::Components{aResult.theSchedule};
 
-            theGreedyObjectives.push_back(aResult.theGreedyObjective);
-            theLsObjectives.push_back(myObjective);
+            std::cout << "Greedy: " << aResult.theGreedyObjectiveComponents.theObjective
+                      << " -> LS: " << myLsObjectiveComponents.theObjective;
+
+            theBestObjectiveSnapshots.push_back(std::move(aResult.theBestObjectiveSnapshots));
+            theGreedyObjectiveComponents.push_back(aResult.theGreedyObjectiveComponents);
+            theLsObjectiveComponents.push_back(myLsObjectiveComponents);
             theIterationDurations.push_back(aResult.theIterationDurationSeconds);
             theGreedyDurations.push_back(aResult.theGreedyDurationSeconds);
             theLsDurations.push_back(aResult.theLsDurationSeconds);
 
-            std::cout << "Greedy: " << aResult.theGreedyObjective << " -> LS: " << myObjective;
-
-            if (myObjective > theBestObjective) {
+            if (myLsObjectiveComponents.theObjective > theBestObjective) {
                 theBestIterationIndex = aResult.theIterationIndex;
-                theBestObjective = myObjective;
+                theBestObjective = myLsObjectiveComponents.theObjective;
                 theBestSchedule = std::move(aResult.theSchedule);
 
                 std::cout << " <<< New best" << std::endl;
@@ -81,19 +86,24 @@ namespace grasp {
                 aParameters.theAlphaGreedy,
                 myGenerator
         );
-        myResult.theGreedyObjective = evaluateObjective(myGreedySchedule);
+        myResult.theGreedyObjectiveComponents = objective::Components{myGreedySchedule};
 
-        const auto myMiddleTime = std::chrono::steady_clock::now();
-        myResult.theSchedule = local_search::search(std::move(myGreedySchedule), aParameters, myGenerator, aKillSwitch);
+        const auto myIterationMiddleTime = std::chrono::steady_clock::now();
+
+        auto[tmpSchedule_, tmpBestObjectiveSnapshots_] = local_search::search(
+                std::move(myGreedySchedule), aParameters, myGenerator, aKillSwitch);
+        myResult.theSchedule = std::move(tmpSchedule_);
+        myResult.theBestObjectiveSnapshots = std::move(tmpBestObjectiveSnapshots_);
+
         const auto myIterationEndTime = std::chrono::steady_clock::now();
 
         const std::chrono::duration<double> myIterationDuration = myIterationEndTime - myIterationStartTime;
         myResult.theIterationDurationSeconds = myIterationDuration.count();
 
-        const std::chrono::duration<double> myGreedyDuration = myMiddleTime - myIterationStartTime;
+        const std::chrono::duration<double> myGreedyDuration = myIterationMiddleTime - myIterationStartTime;
         myResult.theGreedyDurationSeconds = myGreedyDuration.count();
 
-        const std::chrono::duration<double> myLsDuration = myIterationEndTime - myMiddleTime;
+        const std::chrono::duration<double> myLsDuration = myIterationEndTime - myIterationMiddleTime;
         myResult.theLsDurationSeconds = myLsDuration.count();
 
         return myResult;

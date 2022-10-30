@@ -21,7 +21,7 @@ namespace {
 
         for (const auto &myTakeoff: myTakeoffs) {
             aSchedule.removeTakeoff(myTakeoff);
-            myTakeoffsObjectives.push_back(evaluateObjective(aSchedule));
+            myTakeoffsObjectives.push_back(objective::evaluateObjective(aSchedule));
             aSchedule.insertTakeoff(myTakeoff);
         }
 
@@ -49,17 +49,32 @@ namespace {
 }
 
 namespace local_search {
-    Schedule search(
+    struct ObjectiveComponentsSnapshot : public objective::Components {
+        std::uint32_t theIteration{};
+
+        ObjectiveComponentsSnapshot() = default;
+
+        ObjectiveComponentsSnapshot(std::uint32_t anIteration, const Schedule &aSchedule) :
+                Components(aSchedule),
+                theIteration(anIteration) {}
+    };
+
+    std::pair<Schedule, std::vector<ObjectiveComponentsSnapshot>> search(
             Schedule aSchedule,
             const Parameters &aParameters,
             std::mt19937 &aGenerator,
             std::atomic_bool &aKillSwitch
     ) {
+        static constexpr auto mySnapshotSkip = 50;
+
         Schedule myCurrentSchedule{std::move(aSchedule)};
-        double myCurrentObjective{evaluateObjective(myCurrentSchedule)};
+        double myCurrentObjective{objective::evaluateObjective(myCurrentSchedule)};
 
         Schedule myBestSchedule{myCurrentSchedule};
         double myBestObjective{myCurrentObjective};
+
+        std::vector<ObjectiveComponentsSnapshot> myBestObjectiveSnapshots{};
+        myBestObjectiveSnapshots.reserve(aParameters.theLsIterationsCount / mySnapshotSkip + 1);
 
         std::uint32_t myBestIteration = 0;
 
@@ -71,8 +86,8 @@ namespace local_search {
         std::vector<Takeoff> myInsertedGreedyTakeoffs{};
         myInsertedGreedyTakeoffs.reserve(aParameters.theNumberDestroy);
 
-        for (std::uint32_t myIterationCount = 1;
-             myIterationCount <= aParameters.theLsIterationsCount && !aKillSwitch;
+        for (std::uint32_t myIterationCount = 0;
+             myIterationCount < aParameters.theLsIterationsCount && !aKillSwitch;
              ++myIterationCount) {
 
             std::uniform_int_distribution<std::uint32_t> myDestroyDistribution{
@@ -100,7 +115,7 @@ namespace local_search {
                 myCurrentSchedule.insertTakeoff(*myInsertedGreedyTakeoff);
             }
 
-            const double myNewObjective = evaluateObjective(myCurrentSchedule);
+            const double myNewObjective = objective::evaluateObjective(myCurrentSchedule);
 
             if (myNewObjective > myBestObjective) {
                 myBestSchedule = myCurrentSchedule;
@@ -128,8 +143,12 @@ namespace local_search {
             myRemovedTakeoffs.clear();
 
             myTemperature *= aParameters.theTempCoef;
+
+            if (myIterationCount % mySnapshotSkip == 0) {
+                myBestObjectiveSnapshots.emplace_back(myIterationCount, myBestSchedule);
+            }
         }
 
-        return myBestSchedule;
+        return {std::move(myBestSchedule), std::move(myBestObjectiveSnapshots)};
     }
 }
