@@ -43,6 +43,22 @@ namespace local_search {
     }
 }
 
+void to_json(ordered_json &j, const Parameters &p) {
+    j = ordered_json{
+            {"_input",     p.theInputFilename},
+            {"_output",    p.theOutputFilename},
+            {"_threads",   p.theThreadCount},
+            {"_timeout",   p.theTimeoutSeconds},
+            {"_iters",     p.theGraspIterationsCount},
+            {"_ls_iters",  p.theLsIterationsCount},
+            {"_nd",        p.theNumberDestroy},
+            {"_alpha_g",   p.theAlphaGreedy},
+            {"_alpha_d",   p.theAlphaDestroy},
+            {"_t0",        p.theT0},
+            {"_temp_coef", p.theTempCoef},
+    };
+}
+
 void assignCLI(CLI::App &app, Parameters &p) {
     app.add_option(
             "-i,--input",
@@ -210,7 +226,7 @@ int main(int argc, char *argv[]) {
             {"_drops_count",               round(myAccumulator.theBestSchedule.getTotalDropsCount() * 1e2) / 1e2},
             {"_best_iteration",            myAccumulator.theBestIterationIndex},
             {"_total_iterations",          myAccumulator.theCompletedGraspIterationsCount},
-            {"_threads",                   myParameters.theThreadCount},
+            {"_parameters",                myParameters},
             {"_objective_greedy_best",     myGreedyBestObjective},
             {"_objective_greedy_avg",      myGreedyMean},
             {"_objective_greedy_stddev",   myGreedyStdDev},
