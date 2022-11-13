@@ -17,12 +17,12 @@ struct Parameters {
     double theTimeoutSeconds{-1};
 
     std::uint32_t theGraspIterationsCount{20};
-    std::uint32_t theLsIterationsCount{6000};
+    std::uint32_t theLsIterationsCount{10'000};
 
-    std::uint32_t theNumberDestroy{8};
+    std::uint32_t theNumberDestroy{15};
 
     double theAlphaGreedy{0.1};
-    double theAlphaDestroy{0.75};
+    double theAlphaDestroy{0.9};
 
     double theT0{1e12};
     double theTempCoef{0.995};
