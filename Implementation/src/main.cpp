@@ -82,7 +82,7 @@ void assignCLI(CLI::App &app, Parameters &p) {
             "-t,--threads",
             p.theThreadCount,
             "Number of worker threads."
-    )->required(false);
+    )->required(false)->check(CLI::PositiveNumber);
 
     app.add_option(
             "--timeout",
@@ -94,43 +94,43 @@ void assignCLI(CLI::App &app, Parameters &p) {
             "--iters",
             p.theGraspIterationsCount,
             "Total number of GRASP iterations to run. Preferably a multiple of --threads for maximum efficiency."
-    )->required(false);
+    )->required(false)->check(CLI::PositiveNumber);
 
     app.add_option(
             "--ls-iters",
             p.theLsIterationsCount,
             "Number of iterations in local search."
-    )->required(false);
+    )->required(false)->check(CLI::NonNegativeNumber);
 
     app.add_option(
             "--nd",
             p.theNumberDestroy,
             "Maximum number of takeoffs to be removed in destroy method. Actual number randomly chosen from range [1, N_D] in each iteration."
-    )->required(false);
+    )->required(false)->check(CLI::PositiveNumber);
 
     app.add_option(
             "--alpha-g",
             p.theAlphaGreedy,
             "Alpha value for RCL in greedy construction and repair method."
-    )->required(false);
+    )->required(false)->check(CLI::Range(1.0));
 
     app.add_option(
             "--alpha-d",
             p.theAlphaDestroy,
             "Alpha value for RCL in destroy method."
-    )->required(false);
+    )->required(false)->check(CLI::Range(1.0));
 
     app.add_option(
             "--t0",
             p.theT0,
             "Starting temperature T0 in SA."
-    )->required(false);
+    )->required(false)->check(CLI::NonNegativeNumber);
 
     app.add_option(
             "--temp-coef",
             p.theTempCoef,
             "Cooling factor in SA."
-    )->required(false);
+    )->required(false)->check(CLI::Range(1.0));
 }
 
 int main(int argc, char *argv[]) {
