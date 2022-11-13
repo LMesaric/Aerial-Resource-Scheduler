@@ -8,12 +8,11 @@
 #include <atomic>
 #include <chrono>
 #include <CLI11.hpp>
-#include <cmath>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <string>
 #include <thread>
-#include <vector>
 
 #include <nlohmann/json.hpp>
 
@@ -174,7 +173,9 @@ int main(int argc, char *argv[]) {
     std::cout << "Finished parsing input!" << std::endl;
 
     const std::chrono::duration<double> myTimeout(
-            myParameters.theTimeoutSeconds > 0 ? myParameters.theTimeoutSeconds : DBL_MAX
+            myParameters.theTimeoutSeconds > 0
+            ? myParameters.theTimeoutSeconds
+            : std::numeric_limits<double>::max()
     );
 
     std::atomic_bool myKillSwitch{false};

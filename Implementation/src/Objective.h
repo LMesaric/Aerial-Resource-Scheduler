@@ -2,7 +2,7 @@
 
 #include "Schedule.h"
 
-#include <cfloat>
+#include <limits>
 
 
 namespace objective {
@@ -33,7 +33,7 @@ namespace objective {
         // Not using methods from Schedule for increased performance.
 
         double myNegativeSum = 0.0;
-        double myMinSurplus = +DBL_MAX;
+        double myMinSurplus = std::numeric_limits<double>::max();
 
         for (const double mySurplus: aSchedule.getWaterTargetSurplus().getRawData()) {
             myNegativeSum += std::min(0.0, mySurplus);

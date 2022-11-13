@@ -7,10 +7,10 @@
 #include "Parameters.h"
 
 #include <atomic>
-#include <cfloat>
 #include <chrono>
 #include <cstdint>
 #include <future>
+#include <limits>
 #include <list>
 
 
@@ -27,7 +27,7 @@ namespace grasp {
 
     struct Accumulator {
         Schedule theBestSchedule{};
-        double theBestObjective{-DBL_MAX};
+        double theBestObjective{std::numeric_limits<double>::lowest()};
 
         std::uint32_t theBestIterationIndex{};
         std::uint32_t theCompletedGraspIterationsCount{};

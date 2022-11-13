@@ -4,7 +4,7 @@
 #include "Schedule.h"
 
 #include <atomic>
-#include <cfloat>
+#include <limits>
 #include <unordered_set>
 #include <vector>
 
@@ -17,7 +17,7 @@ std::pair<std::vector<Takeoff>, double> recursiveFindOptimalCompletion( // NOLIN
         std::atomic_bool &aKillSwitch
 ) {
     if (aKillSwitch) {
-        return {{}, -DBL_MAX};
+        return {{}, std::numeric_limits<double>::lowest()};
     }
 
     const auto myTakeoffs = aSchedule.findAllLegalTakeoffs();
@@ -27,7 +27,7 @@ std::pair<std::vector<Takeoff>, double> recursiveFindOptimalCompletion( // NOLIN
     }
 
     std::vector<Takeoff> myOptimalTakeoffs{};
-    double myOptimalObjectiveValue = -DBL_MAX;
+    double myOptimalObjectiveValue = std::numeric_limits<double>::lowest();
 
     std::vector<Takeoff> myTakeoffsToRemove{};
     myTakeoffsToRemove.reserve(myTakeoffs.size());
