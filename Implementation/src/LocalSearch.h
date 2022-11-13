@@ -14,36 +14,35 @@
 
 
 namespace {
-    Takeoff destroyOneTakeoff(Schedule &aSchedule, double anAlphaDestroy, std::mt19937 &aGenerator) {
-        std::vector<Takeoff> myTakeoffs{aSchedule.getTakeoffs().begin(), aSchedule.getTakeoffs().end()};
-        std::vector<double> myTakeoffsObjectives{};
-        myTakeoffsObjectives.reserve(myTakeoffs.size());
+    std::size_t pickRandomDestroyIndex(
+            Schedule &aSchedule,
+            const std::vector<Takeoff> &aTakeoffs,
+            double anAlphaDestroy,
+            std::mt19937 &aGenerator
+    ) {
+        if (anAlphaDestroy == 1.0) {
+            std::uniform_int_distribution<std::size_t> myDistribution{0, aTakeoffs.size() - 1};
+            return myDistribution(aGenerator);
+        }
 
-        for (const auto &myTakeoff: myTakeoffs) {
+        std::vector<double> myTakeoffsObjectives{};
+        myTakeoffsObjectives.reserve(aTakeoffs.size());
+
+        for (const auto &myTakeoff: aTakeoffs) {
             aSchedule.removeTakeoff(myTakeoff);
             myTakeoffsObjectives.push_back(objective::evaluateObjective(aSchedule));
             aSchedule.insertTakeoff(myTakeoff);
         }
 
-        const auto[myMinIt, myMaxIt] = std::minmax_element(myTakeoffsObjectives.begin(), myTakeoffsObjectives.end());
-        const double myMinFit = *myMinIt;
-        const double myMaxFit = *myMaxIt;
+        return stochasticallySelectFromRcl(myTakeoffsObjectives, anAlphaDestroy, aGenerator);
+    }
 
-        const double myThreshold = myMaxFit - anAlphaDestroy * (myMaxFit - myMinFit);
+    Takeoff destroyOneTakeoff(Schedule &aSchedule, double anAlphaDestroy, std::mt19937 &aGenerator) {
+        std::vector<Takeoff> myTakeoffs{aSchedule.getTakeoffs().begin(), aSchedule.getTakeoffs().end()};
+        std::size_t myRandomIndex = pickRandomDestroyIndex(aSchedule, myTakeoffs, anAlphaDestroy, aGenerator);
 
-        std::vector<std::size_t> myRclIndices{};
-        for (std::size_t i = 0; i < myTakeoffsObjectives.size(); ++i) {
-            if (myTakeoffsObjectives[i] >= myThreshold) {
-                myRclIndices.push_back(i);
-            }
-        }
-
-        std::uniform_int_distribution<std::size_t> myDistribution{0, myRclIndices.size() - 1};
-        const auto myRandomIndex = myDistribution(aGenerator);
-
-        Takeoff myRemovedTakeoff = myTakeoffs[myRclIndices[myRandomIndex]];
+        Takeoff myRemovedTakeoff = myTakeoffs[myRandomIndex];
         aSchedule.removeTakeoff(myRemovedTakeoff);
-
         return myRemovedTakeoff;
     }
 }
