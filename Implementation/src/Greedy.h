@@ -3,6 +3,7 @@
 #include "Instance.h"
 #include "Objective.h"
 #include "Schedule.h"
+#include "Takeoff.h"
 
 #include <atomic>
 #include <cmath>

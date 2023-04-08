@@ -5,6 +5,7 @@
 #include "Objective.h"
 #include "Parameters.h"
 #include "Schedule.h"
+#include "Takeoff.h"
 
 #include <atomic>
 #include <cmath>

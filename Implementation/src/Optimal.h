@@ -2,6 +2,7 @@
 
 #include "Objective.h"
 #include "Schedule.h"
+#include "Takeoff.h"
 
 #include <atomic>
 #include <limits>

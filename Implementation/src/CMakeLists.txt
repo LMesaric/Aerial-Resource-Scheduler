@@ -20,7 +20,9 @@ add_executable(
         InstanceConverter.h
         Matrix.h
         Parameters.h
+        Takeoff.h
         Schedule.h
+        Schedule.cpp
         Objective.h
         Greedy.h
         LocalSearch.h

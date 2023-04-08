@@ -88,7 +88,6 @@ InstanceRaw AmplInputParser::parse(std::istream &aStream) const {
 
     bool myFailedConversion = false;
     try {
-
         REPEAT(2) std::getline(aStream, myLine); // data; set K
         myInstanceRaw.theVehicles.resize(std::stoul(extractLastNumberStr(myLine)));
 
