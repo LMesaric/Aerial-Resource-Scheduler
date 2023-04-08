@@ -9,8 +9,8 @@
 
 struct Front {
     std::vector<double> theTargetWaterContent{};
+    double thePriority{1.0};
     std::uint32_t theSimultaneousResourcesLimit{};
-
     bool theIsOnlyHelicopters{};
 };
 

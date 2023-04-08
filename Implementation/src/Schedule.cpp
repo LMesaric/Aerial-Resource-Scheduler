@@ -392,3 +392,15 @@ double Schedule::getNegativeSurplusSum() const {
     }
     return myNegativeSum;
 }
+
+double Schedule::getNegativeSurplusSumWithPriorities() const {
+    double myNegativeSumWithPriorities = 0.0;
+
+    for (std::size_t myFrontId = 0; myFrontId < theInstance->getFrontsCnt(); ++myFrontId) {
+        for (const double mySurplus: theWaterTargetSurplus[myFrontId]) {
+            myNegativeSumWithPriorities += std::min(0.0, mySurplus) * theInstance->theFronts[myFrontId].thePriority;
+        }
+    }
+
+    return myNegativeSumWithPriorities;
+}

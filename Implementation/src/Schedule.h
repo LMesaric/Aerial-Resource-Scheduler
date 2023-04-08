@@ -51,6 +51,8 @@ public:
 
     [[nodiscard]] double getNegativeSurplusSum() const;
 
+    [[nodiscard]] double getNegativeSurplusSumWithPriorities() const;
+
     [[nodiscard]] inline const Instance &getInstance() const {
         return *theInstance;
     }

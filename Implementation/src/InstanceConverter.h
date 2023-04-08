@@ -10,6 +10,7 @@
 Front convertFront(const FrontRaw &aFrontRaw) {
     return Front{
             .theTargetWaterContent=aFrontRaw.theTargetWaterContent,
+            .thePriority=aFrontRaw.thePriority,
             .theSimultaneousResourcesLimit=aFrontRaw.theSimultaneousResourcesLimit,
             .theIsOnlyHelicopters=aFrontRaw.theIsOnlyHelicopters
     };

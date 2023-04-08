@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 project(AerialResourceScheduler)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 include_directories(include)
 

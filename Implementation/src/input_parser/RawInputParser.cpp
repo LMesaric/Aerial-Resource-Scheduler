@@ -92,6 +92,10 @@ InstanceRaw RawInputParser::parse(std::istream &aStream) const {
 
     aStream >> myInstanceRaw.theA1 >> myInstanceRaw.theA2 >> myInstanceRaw.theA3;
 
+    for (auto &myFront: myInstanceRaw.theFronts) {
+        aStream >> myFront.thePriority;
+    }
+
     if (aStream.fail()) {
         const auto myErrMsg = "Failed to correctly read input";
         std::cout << "FATAL: " << myErrMsg << std::endl;

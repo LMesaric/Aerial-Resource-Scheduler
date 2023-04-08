@@ -22,10 +22,11 @@ using ordered_json = nlohmann::ordered_json;
 namespace objective {
     void to_json(ordered_json &j, const Components &c) {
         j = ordered_json{
-                {"wsn", c.theNegativeSum},
-                {"z",   c.theMinSurplus},
-                {"wo",  c.theTotalWaterOutput},
-                {"obj", c.theObjective},
+                {"wsn",      c.theNegativeSum},
+                {"wsn_prio", c.theNegativeSumWithPriorities},
+                {"z",        c.theMinSurplus},
+                {"wo",       c.theTotalWaterOutput},
+                {"obj",      c.theObjective},
         };
     }
 }
@@ -33,11 +34,12 @@ namespace objective {
 namespace local_search {
     void to_json(ordered_json &j, const ObjectiveComponentsSnapshot &ocs) {
         j = ordered_json{
-                {"iter", ocs.theIteration},
-                {"wsn",  ocs.theNegativeSum},
-                {"z",    ocs.theMinSurplus},
-                {"wo",   ocs.theTotalWaterOutput},
-                {"obj",  ocs.theObjective},
+                {"iter",     ocs.theIteration},
+                {"wsn",      ocs.theNegativeSum},
+                {"wsn_prio", ocs.theNegativeSumWithPriorities},
+                {"z",        ocs.theMinSurplus},
+                {"wo",       ocs.theTotalWaterOutput},
+                {"obj",      ocs.theObjective},
         };
     }
 }
@@ -206,19 +208,21 @@ int main(int argc, char *argv[]) {
             [](const objective::Components &c1, const objective::Components &c2) {
                 return c1.theObjective < c2.theObjective;
             });
-    const auto[myGreedyMean, myGreedyStdDev] = statistics::meanAndDevTransform(
+    const auto [myGreedyMean, myGreedyStdDev] = statistics::meanAndDevTransform(
             myAccumulator.theGreedyObjectiveComponents);
-    const auto[myLsMean, myLsStdDev] = statistics::meanAndDevTransform(
+    const auto [myLsMean, myLsStdDev] = statistics::meanAndDevTransform(
             myAccumulator.theLsObjectiveComponents);
-    const auto[myIterationDurationMean, myIterationDurationStdDev] = statistics::meanAndDev(
+    const auto [myIterationDurationMean, myIterationDurationStdDev] = statistics::meanAndDev(
             myAccumulator.theIterationDurations);
-    const auto[myGreedyDurationMean, myGreedyDurationStdDev] = statistics::meanAndDev(
+    const auto [myGreedyDurationMean, myGreedyDurationStdDev] = statistics::meanAndDev(
             myAccumulator.theGreedyDurations);
-    const auto[myLsDurationMean, myLsDurationStdDev] = statistics::meanAndDev(myAccumulator.theLsDurations);
+    const auto [myLsDurationMean, myLsDurationStdDev] = statistics::meanAndDev(myAccumulator.theLsDurations);
 
     ordered_json myOutputDataOverviewJson = {
             {"WO",                         (std::int64_t) round(myAccumulator.theBestSchedule.getTotalWaterOutput())},
             {"Sum_WSn",                    round(myAccumulator.theBestSchedule.getNegativeSurplusSum() * 1e2) / 1e2},
+            {"Sum_WSn_prio",               round(
+                    myAccumulator.theBestSchedule.getNegativeSurplusSumWithPriorities() * 1e2) / 1e2},
             {"Z",                          round(myAccumulator.theBestSchedule.getMinimumSurplus() * 1e2) / 1e2},
             {"objective",                  myAccumulator.theBestObjective},
             {"_solve_wall_time",           myElapsedSeconds.count()},

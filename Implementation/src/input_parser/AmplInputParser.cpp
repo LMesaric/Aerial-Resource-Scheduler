@@ -166,6 +166,12 @@ InstanceRaw AmplInputParser::parse(std::istream &aStream) const {
         REPEAT(2) std::getline(aStream, myLine); // blank; param a3
         myInstanceRaw.theA3 = std::stod(extractLastNumberStr(myLine));
 
+        REPEAT(2) std::getline(aStream, myLine); // blank; param PR
+        auto myFrontPriority = parseOneDimensionMap<double>(aStream, myInstanceRaw.getFrontsCnt());
+        for (std::size_t i = 0; i < myInstanceRaw.getFrontsCnt(); ++i) {
+            myInstanceRaw.theFronts[i].thePriority = myFrontPriority[i];
+        }
+
     } catch (...) {
         myFailedConversion = true;
     }
