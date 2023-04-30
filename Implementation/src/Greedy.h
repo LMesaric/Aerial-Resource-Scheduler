@@ -15,7 +15,7 @@
 
 namespace {
     void scaleVector(std::vector<double> &aVector) {
-        const auto[myMinIt, myMaxIt] = std::minmax_element(aVector.begin(), aVector.end());
+        const auto [myMinIt, myMaxIt] = std::minmax_element(aVector.begin(), aVector.end());
         const double myMin = *myMinIt;
         const double myMax = *myMaxIt;
 
@@ -45,7 +45,7 @@ namespace {
     std::size_t stochasticallySelectFromRcl(
             const std::vector<double> &aFitness, double anAlpha, std::mt19937 &aGenerator
     ) {
-        const auto[myMinIt, myMaxIt] = std::minmax_element(aFitness.begin(), aFitness.end());
+        const auto [myMinIt, myMaxIt] = std::minmax_element(aFitness.begin(), aFitness.end());
         const double myMinFit = *myMinIt;
         const double myMaxFit = *myMaxIt;
         const double myThreshold = myMaxFit - anAlpha * (myMaxFit - myMinFit);
@@ -65,7 +65,12 @@ namespace {
 }
 
 namespace greedy {
-    std::optional<Takeoff> pickGreedyTakeoff(Schedule &aSchedule, double anAlpha, std::mt19937 &aGenerator) {
+    std::optional<Takeoff> pickGreedyTakeoff(
+            Schedule &aSchedule,
+            double anAlpha,
+            double aFitnessWeightFactor,
+            std::mt19937 &aGenerator
+    ) {
         const auto myTakeoffs = aSchedule.findAllLegalTakeoffs();
 
         if (myTakeoffs.empty()) {
@@ -95,7 +100,7 @@ namespace greedy {
         scaleVector(myReducedTakeoffCounts);
 
         const auto myMaxTakeoffsCountDelta = aSchedule.getInstance().theMaxTakeoffsCount - aSchedule.getTakeoffsCount();
-        const double myFitnessWeight = 0.2 * std::sqrt((float) myMaxTakeoffsCountDelta - 1.f);
+        const double myFitnessWeight = aFitnessWeightFactor * std::sqrt((float) myMaxTakeoffsCountDelta - 1.f);
 
         std::vector<double> myFitness(myTakeoffs.size());
         for (std::size_t i = 0; i < myTakeoffs.size(); ++i) {
@@ -113,11 +118,12 @@ namespace greedy {
             const Instance *anInstance,
             std::atomic_bool &aKillSwitch,
             double anAlpha,
+            double aFitnessWeightFactor,
             std::mt19937 &aGenerator
     ) {
         Schedule mySchedule{anInstance};
 
-        while (auto myTakeoff = pickGreedyTakeoff(mySchedule, anAlpha, aGenerator)) {
+        while (auto myTakeoff = pickGreedyTakeoff(mySchedule, anAlpha, aFitnessWeightFactor, aGenerator)) {
             mySchedule.insertTakeoff(*myTakeoff);
             if (aKillSwitch) {
                 break;

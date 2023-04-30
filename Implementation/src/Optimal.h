@@ -40,7 +40,7 @@ std::pair<std::vector<Takeoff>, double> recursiveFindOptimalCompletion( // NOLIN
 
         aSchedule.insertTakeoff(myTakeoff);
 
-        auto[myOptimalTakeoffsTmp, myObjectiveValueTmp] = recursiveFindOptimalCompletion(
+        auto [myOptimalTakeoffsTmp, myObjectiveValueTmp] = recursiveFindOptimalCompletion(
                 aSchedule, anIgnoreTakeoffs, aKillSwitch
         );
 

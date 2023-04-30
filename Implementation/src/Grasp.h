@@ -84,13 +84,14 @@ namespace grasp {
                 anInstance,
                 aKillSwitch,
                 aParameters.theAlphaGreedy,
+                aParameters.theFitnessWeightFactor,
                 myGenerator
         );
         myResult.theGreedyObjectiveComponents = objective::Components{myGreedySchedule};
 
         const auto myIterationMiddleTime = std::chrono::steady_clock::now();
 
-        auto[tmpSchedule_, tmpBestObjectiveSnapshots_] = local_search::search(
+        auto [tmpSchedule_, tmpBestObjectiveSnapshots_] = local_search::search(
                 std::move(myGreedySchedule), aParameters, myGenerator, aKillSwitch);
         myResult.theSchedule = std::move(tmpSchedule_);
         myResult.theBestObjectiveSnapshots = std::move(tmpBestObjectiveSnapshots_);

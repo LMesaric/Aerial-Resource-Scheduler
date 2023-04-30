@@ -123,6 +123,12 @@ void assignCLI(CLI::App &app, Parameters &p) {
     )->required(false)->check(CLI::Range(1.0));
 
     app.add_option(
+            "--fitness-coef",
+            p.theFitnessWeightFactor,
+            "Greedy fitness weight factor."
+    )->required(false)->check(CLI::PositiveNumber);
+
+    app.add_option(
             "--t0",
             p.theT0,
             "Starting temperature T0 in SA."

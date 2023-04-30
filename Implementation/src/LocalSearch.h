@@ -105,6 +105,7 @@ namespace local_search {
                 std::optional<Takeoff> myInsertedGreedyTakeoff = greedy::pickGreedyTakeoff(
                         myCurrentSchedule,
                         aParameters.theAlphaGreedy,
+                        aParameters.theFitnessWeightFactor,
                         aGenerator
                 );
                 if (!myInsertedGreedyTakeoff) {

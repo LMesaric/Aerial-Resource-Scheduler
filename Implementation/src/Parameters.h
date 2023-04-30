@@ -23,6 +23,7 @@ struct Parameters {
 
     double theAlphaGreedy{0.1};
     double theAlphaDestroy{0.9};
+    double theFitnessWeightFactor{0.2};
 
     double theT0{1e12};
     double theTempCoef{0.995};
