@@ -12,6 +12,7 @@
 #include <future>
 #include <limits>
 #include <list>
+#include <thread>
 
 
 namespace grasp {
@@ -130,14 +131,20 @@ namespace grasp {
             const Parameters &aParameters,
             std::atomic_bool &aKillSwitch
     ) {
-        BS::thread_pool myPool{aParameters.theThreadCount};
+        const std::uint32_t myHardwareThreadCnt = std::thread::hardware_concurrency();
+        const std::uint32_t myThreadPoolSize = std::min(
+                {aParameters.theThreadCount,
+                 aParameters.theGraspIterationsCount,
+                 myHardwareThreadCnt == 0 ? std::numeric_limits<std::uint32_t>::max() : myHardwareThreadCnt}
+        );
+
+        BS::thread_pool myPool{myThreadPoolSize};
         std::list<std::future<IterationResult>> myFutures;
 
         std::uint32_t mySubmittedCount{0};
 
-        const auto myFirstBatchCount = std::min(aParameters.theGraspIterationsCount, aParameters.theThreadCount);
-        for (; mySubmittedCount < myFirstBatchCount; ++mySubmittedCount) {
-            myFutures.push_back(
+        for (; mySubmittedCount < myThreadPoolSize; ++mySubmittedCount) {
+            myFutures.emplace_back(
                     myPool.submit(iteration, mySubmittedCount, anInstance, aParameters, std::ref(aKillSwitch))
             );
         }
@@ -151,12 +158,11 @@ namespace grasp {
                     continue;
                 }
 
-                auto myIterationResult = myIt->get();
-                myAccumulator.updateSchedule(std::move(myIterationResult));
+                myAccumulator.updateSchedule(std::move(myIt->get()));
                 myIt = myFutures.erase(myIt);
 
                 if (!aKillSwitch && mySubmittedCount < aParameters.theGraspIterationsCount) {
-                    myFutures.push_back(myPool.submit(
+                    myFutures.emplace_back(myPool.submit(
                             iteration, mySubmittedCount++, anInstance, aParameters, std::ref(aKillSwitch)
                     ));
                 }
