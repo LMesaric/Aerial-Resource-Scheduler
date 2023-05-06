@@ -9,9 +9,9 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
-#include <future>
 #include <limits>
-#include <list>
+#include <mutex>
+#include <optional>
 #include <thread>
 
 
@@ -69,11 +69,23 @@ namespace grasp {
         }
     };
 
+    struct ThreadSafeAccumulatorWrapper {
+        Accumulator &theAccumulator;
+        std::mutex theMutex{};
+
+        explicit ThreadSafeAccumulatorWrapper(Accumulator &anAccumulator) : theAccumulator{anAccumulator} {}
+
+        bool updateSchedule(IterationResult aResult) {
+            const std::lock_guard lock{theMutex};
+            return theAccumulator.updateSchedule(std::move(aResult));
+        }
+    };
+
     [[nodiscard]] IterationResult iteration(
             std::uint32_t anIterationIdx,
             const Instance *anInstance,
             const Parameters &aParameters,
-            std::atomic_bool &aKillSwitch
+            std::atomic_flag &aKillSwitch
     ) {
         const auto myIterationStartTime = std::chrono::steady_clock::now();
 
@@ -111,14 +123,62 @@ namespace grasp {
         return myResult;
     }
 
+    struct IterationTask {
+        std::uint32_t theIterationIdx{};
+        const Instance *theInstance;
+        const Parameters &theParameters;
+        std::atomic_flag &theKillSwitch;
+        ThreadSafeAccumulatorWrapper &theAccumulator;
+
+        void run() const {
+            theAccumulator.updateSchedule(iteration(theIterationIdx, theInstance, theParameters, theKillSwitch));
+        }
+    };
+
+    struct TaskGenerator {
+        const std::uint32_t theTaskCount{};
+        std::atomic_uint32_t theNextTaskIdx{0};
+
+        const Instance *theInstance;
+        const Parameters &theParameters;
+        std::atomic_flag &theKillSwitch;
+        ThreadSafeAccumulatorWrapper &theAccumulator;
+
+        TaskGenerator(std::uint32_t aTaskCount,
+                      const Instance *anInstance,
+                      const Parameters &aParameters,
+                      std::atomic_flag &aKillSwitch,
+                      ThreadSafeAccumulatorWrapper &anAccumulator)
+                : theTaskCount{aTaskCount},
+                  theInstance{anInstance},
+                  theParameters{aParameters},
+                  theKillSwitch{aKillSwitch},
+                  theAccumulator{anAccumulator} {}
+
+        std::optional<IterationTask> generateTask() {
+            if (theKillSwitch.test(std::memory_order_relaxed)) { return {}; }
+
+            std::uint32_t myNextTaskIdx = theNextTaskIdx.fetch_add(1U, std::memory_order_relaxed);
+            if (myNextTaskIdx >= theTaskCount) { return {}; }
+
+            return IterationTask{
+                    .theIterationIdx = myNextTaskIdx,
+                    .theInstance = theInstance,
+                    .theParameters = theParameters,
+                    .theKillSwitch = theKillSwitch,
+                    .theAccumulator = theAccumulator
+            };
+        }
+    };
+
     [[nodiscard]] Accumulator searchSequential(
             const Instance *anInstance,
             const Parameters &aParameters,
-            std::atomic_bool &aKillSwitch
+            std::atomic_flag &aKillSwitch
     ) {
         Accumulator myAccumulator{};
 
-        for (auto i = 0; i < aParameters.theGraspIterationsCount && !aKillSwitch; ++i) {
+        for (auto i = 0; i < aParameters.theGraspIterationsCount && !aKillSwitch.test(std::memory_order_relaxed); ++i) {
             auto myIterationResult = iteration(i, anInstance, aParameters, aKillSwitch);
             myAccumulator.updateSchedule(std::move(myIterationResult));
         }
@@ -129,7 +189,7 @@ namespace grasp {
     [[nodiscard]] Accumulator searchParallelized(
             const Instance *anInstance,
             const Parameters &aParameters,
-            std::atomic_bool &aKillSwitch
+            std::atomic_flag &aKillSwitch
     ) {
         const std::uint32_t myHardwareThreadCnt = std::thread::hardware_concurrency();
         const std::uint32_t myThreadPoolSize = std::min(
@@ -139,36 +199,29 @@ namespace grasp {
         );
 
         BS::thread_pool myPool{myThreadPoolSize};
-        std::list<std::future<IterationResult>> myFutures;
-
-        std::uint32_t mySubmittedCount{0};
-
-        for (; mySubmittedCount < myThreadPoolSize; ++mySubmittedCount) {
-            myFutures.emplace_back(
-                    myPool.submit(iteration, mySubmittedCount, anInstance, aParameters, std::ref(aKillSwitch))
-            );
-        }
-
         Accumulator myAccumulator{};
+        ThreadSafeAccumulatorWrapper myThreadSafeAccumulator{myAccumulator};
+        TaskGenerator myTaskGenerator{
+                aParameters.theGraspIterationsCount,
+                anInstance,
+                aParameters,
+                aKillSwitch,
+                myThreadSafeAccumulator
+        };
 
-        while (!myFutures.empty()) {
-            for (auto myIt = myFutures.begin(); myIt != myFutures.end();) {
-                if (myIt->wait_for(std::chrono::milliseconds(10)) == std::future_status::timeout) {
-                    myIt++;
-                    continue;
+        for (int i = 0; i < myThreadPoolSize; ++i) {
+            myPool.push_task([&myTaskGenerator] {
+                while (true) {
+                    std::optional<IterationTask> myTask = myTaskGenerator.generateTask();
+                    if (!myTask) {
+                        break;
+                    }
+                    myTask->run();
                 }
-
-                myAccumulator.updateSchedule(std::move(myIt->get()));
-                myIt = myFutures.erase(myIt);
-
-                if (!aKillSwitch && mySubmittedCount < aParameters.theGraspIterationsCount) {
-                    myFutures.emplace_back(myPool.submit(
-                            iteration, mySubmittedCount++, anInstance, aParameters, std::ref(aKillSwitch)
-                    ));
-                }
-            }
+            });
         }
 
+        myPool.wait_for_tasks();
         return myAccumulator;
     }
 }

@@ -63,7 +63,7 @@ namespace local_search {
             Schedule aSchedule,
             const Parameters &aParameters,
             std::mt19937 &aGenerator,
-            std::atomic_bool &aKillSwitch
+            std::atomic_flag &aKillSwitch
     ) {
         static constexpr auto mySnapshotSkip = 50;
 
@@ -87,7 +87,7 @@ namespace local_search {
         myInsertedGreedyTakeoffs.reserve(aParameters.theNumberDestroy);
 
         for (std::uint32_t myIterationCount = 0;
-             myIterationCount < aParameters.theLsIterationsCount && !aKillSwitch;
+             myIterationCount < aParameters.theLsIterationsCount && !aKillSwitch.test(std::memory_order_relaxed);
              ++myIterationCount) {
 
             std::uniform_int_distribution<std::uint32_t> myDestroyDistribution{

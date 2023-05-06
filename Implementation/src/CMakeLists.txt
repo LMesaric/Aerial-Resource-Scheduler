@@ -4,6 +4,8 @@ project(AerialResourceScheduler)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
+find_package(Threads REQUIRED)
+
 include_directories(include)
 
 add_executable(
@@ -30,3 +32,5 @@ add_executable(
         Grasp.h
         Statistics.h
 )
+
+target_link_libraries(AerialResourceScheduler PRIVATE Threads::Threads)

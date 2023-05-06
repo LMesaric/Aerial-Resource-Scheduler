@@ -20,7 +20,7 @@
 using ordered_json = nlohmann::ordered_json;
 
 namespace objective {
-    void to_json(ordered_json &j, const Components &c) {
+    [[maybe_unused]] void to_json(ordered_json &j, const Components &c) {
         j = ordered_json{
                 {"wsn",      c.theNegativeSum},
                 {"wsn_prio", c.theNegativeSumWithPriorities},
@@ -32,7 +32,7 @@ namespace objective {
 }
 
 namespace local_search {
-    void to_json(ordered_json &j, const ObjectiveComponentsSnapshot &ocs) {
+    [[maybe_unused]] void to_json(ordered_json &j, const ObjectiveComponentsSnapshot &ocs) {
         j = ordered_json{
                 {"iter",     ocs.theIteration},
                 {"wsn",      ocs.theNegativeSum},
@@ -44,7 +44,7 @@ namespace local_search {
     }
 }
 
-void to_json(ordered_json &j, const Parameters &p) {
+[[maybe_unused]] void to_json(ordered_json &j, const Parameters &p) {
     j = ordered_json{
             {"_input",     p.theInputFilename},
             {"_output",    p.theOutputFilename},
@@ -186,14 +186,14 @@ int main(int argc, char *argv[]) {
             : std::numeric_limits<double>::max()
     );
 
-    std::atomic_bool myKillSwitch{false};
-    std::atomic_bool myKillTimer{false};
+    std::atomic_flag myKillSwitch = ATOMIC_FLAG_INIT;
+    std::atomic_flag myKillTimer = ATOMIC_FLAG_INIT;
     std::thread myTimeoutThread([myStartTime, myTimeout, &myKillSwitch, &myKillTimer] {
         const auto myEndTime = myTimeout + myStartTime;
-        while (!myKillTimer) {
+        while (!myKillTimer.test(std::memory_order_relaxed)) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             if (std::chrono::steady_clock::now() > myEndTime) {
-                myKillSwitch = true;
+                myKillSwitch.test_and_set(std::memory_order_relaxed);
                 break;
             }
         }
@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
 
     const std::chrono::duration<double> myElapsedSeconds = std::chrono::steady_clock::now() - myStartTime;
 
-    myKillTimer = true;
+    myKillTimer.test_and_set(std::memory_order_relaxed);
     myTimeoutThread.join();
 
     const auto myGreedyBestObjective = *std::max_element(

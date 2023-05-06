@@ -15,9 +15,9 @@
 std::pair<std::vector<Takeoff>, double> recursiveFindOptimalCompletion( // NOLINT(misc-no-recursion)
         Schedule &aSchedule,
         std::unordered_set<Takeoff> &anIgnoreTakeoffs,
-        std::atomic_bool &aKillSwitch
+        std::atomic_flag &aKillSwitch
 ) {
-    if (aKillSwitch) {
+    if (aKillSwitch.test(std::memory_order_relaxed)) {
         return {{}, std::numeric_limits<double>::lowest()};
     }
 
@@ -64,7 +64,7 @@ std::pair<std::vector<Takeoff>, double> recursiveFindOptimalCompletion( // NOLIN
     return {std::move(myOptimalTakeoffs), myOptimalObjectiveValue};
 }
 
-std::pair<std::vector<Takeoff>, double> completeOptimally(Schedule &aSchedule, std::atomic_bool &aKillSwitch) {
+std::pair<std::vector<Takeoff>, double> completeOptimally(Schedule &aSchedule, std::atomic_flag &aKillSwitch) {
     std::unordered_set<Takeoff> myIgnoreTakeoffs{};
     auto myResults = recursiveFindOptimalCompletion(aSchedule, myIgnoreTakeoffs, aKillSwitch);
     const auto &myTakeoffs = std::get<0>(myResults);
