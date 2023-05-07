@@ -8,6 +8,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <cstdint>
 #include <limits>
 #include <mutex>
@@ -85,7 +86,7 @@ namespace grasp {
             std::uint32_t anIterationIdx,
             const Instance *anInstance,
             const Parameters &aParameters,
-            std::atomic_flag &aKillSwitch
+            std::atomic_flag *aKillSwitch
     ) {
         const auto myIterationStartTime = std::chrono::steady_clock::now();
 
@@ -105,7 +106,8 @@ namespace grasp {
         const auto myIterationMiddleTime = std::chrono::steady_clock::now();
 
         auto [tmpSchedule_, tmpBestObjectiveSnapshots_] = local_search::search(
-                std::move(myGreedySchedule), aParameters, myGenerator, aKillSwitch);
+                std::move(myGreedySchedule), aParameters, myGenerator, aKillSwitch
+        );
         myResult.theSchedule = std::move(tmpSchedule_);
         myResult.theBestObjectiveSnapshots = std::move(tmpBestObjectiveSnapshots_);
 
@@ -127,7 +129,7 @@ namespace grasp {
         std::uint32_t theIterationIdx{};
         const Instance *theInstance;
         const Parameters &theParameters;
-        std::atomic_flag &theKillSwitch;
+        std::atomic_flag *theKillSwitch;
         ThreadSafeAccumulatorWrapper &theAccumulator;
 
         void run() const {
@@ -141,13 +143,13 @@ namespace grasp {
 
         const Instance *theInstance;
         const Parameters &theParameters;
-        std::atomic_flag &theKillSwitch;
+        std::atomic_flag *theKillSwitch;
         ThreadSafeAccumulatorWrapper &theAccumulator;
 
         TaskGenerator(std::uint32_t aTaskCount,
                       const Instance *anInstance,
                       const Parameters &aParameters,
-                      std::atomic_flag &aKillSwitch,
+                      std::atomic_flag *aKillSwitch,
                       ThreadSafeAccumulatorWrapper &anAccumulator)
                 : theTaskCount{aTaskCount},
                   theInstance{anInstance},
@@ -156,7 +158,7 @@ namespace grasp {
                   theAccumulator{anAccumulator} {}
 
         std::optional<IterationTask> generateTask() {
-            if (theKillSwitch.test(std::memory_order_relaxed)) { return {}; }
+            if (theKillSwitch && theKillSwitch->test(std::memory_order_relaxed)) { return {}; }
 
             std::uint32_t myNextTaskIdx = theNextTaskIdx.fetch_add(1U, std::memory_order_relaxed);
             if (myNextTaskIdx >= theTaskCount) { return {}; }
@@ -174,11 +176,13 @@ namespace grasp {
     [[nodiscard]] Accumulator searchSequential(
             const Instance *anInstance,
             const Parameters &aParameters,
-            std::atomic_flag &aKillSwitch
+            std::atomic_flag *aKillSwitch
     ) {
         Accumulator myAccumulator{};
 
-        for (auto i = 0; i < aParameters.theGraspIterationsCount && !aKillSwitch.test(std::memory_order_relaxed); ++i) {
+        for (auto i = 0;
+             i < aParameters.theGraspIterationsCount && !(aKillSwitch && aKillSwitch->test(std::memory_order_relaxed));
+             ++i) {
             auto myIterationResult = iteration(i, anInstance, aParameters, aKillSwitch);
             myAccumulator.updateSchedule(std::move(myIterationResult));
         }
@@ -189,7 +193,7 @@ namespace grasp {
     [[nodiscard]] Accumulator searchParallelized(
             const Instance *anInstance,
             const Parameters &aParameters,
-            std::atomic_flag &aKillSwitch
+            std::atomic_flag *aKillSwitch
     ) {
         const std::uint32_t myHardwareThreadCnt = std::thread::hardware_concurrency();
         const std::uint32_t myThreadPoolSize = std::min(
@@ -222,6 +226,47 @@ namespace grasp {
         }
 
         myPool.wait_for_tasks();
+        return myAccumulator;
+    }
+
+    [[nodiscard]] Accumulator search(
+            const Instance *anInstance,
+            const Parameters &aParameters,
+            std::atomic_flag *aKillSwitch = nullptr
+    ) {
+        return aParameters.theThreadCount > 1
+               ? searchParallelized(anInstance, aParameters, aKillSwitch)
+               : searchSequential(anInstance, aParameters, aKillSwitch);
+    }
+
+    [[nodiscard]] Accumulator searchWithTimeout(
+            const Instance *anInstance,
+            const Parameters &aParameters,
+            auto anEndTime
+    ) {
+        std::mutex myKillSwitchMutex;
+        std::condition_variable myKillSwitchCv;
+        std::atomic_flag myKillSwitch = ATOMIC_FLAG_INIT;
+        std::jthread myTimeoutThread(
+                [anEndTime, &myKillSwitch, &myKillSwitchMutex, &myKillSwitchCv] {
+                    std::unique_lock myLock{myKillSwitchMutex};
+                    myKillSwitchCv.wait_until(
+                            myLock,
+                            anEndTime,
+                            [&myKillSwitch] { return myKillSwitch.test(std::memory_order_relaxed); }
+                    );
+                    myKillSwitch.test_and_set(std::memory_order_relaxed);
+                }
+        );
+
+        Accumulator myAccumulator = search(anInstance, aParameters, &myKillSwitch);
+
+        {
+            std::lock_guard myLock{myKillSwitchMutex};
+            myKillSwitch.test_and_set(std::memory_order_relaxed);
+        }
+        myKillSwitchCv.notify_all();
+
         return myAccumulator;
     }
 }

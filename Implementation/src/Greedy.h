@@ -116,7 +116,7 @@ namespace greedy {
 
     [[nodiscard]] Schedule createGreedySchedule(
             const Instance *anInstance,
-            std::atomic_flag &aKillSwitch,
+            std::atomic_flag *aKillSwitch,
             double anAlpha,
             double aFitnessWeightFactor,
             std::mt19937 &aGenerator
@@ -125,7 +125,7 @@ namespace greedy {
 
         while (auto myTakeoff = pickGreedyTakeoff(mySchedule, anAlpha, aFitnessWeightFactor, aGenerator)) {
             mySchedule.insertTakeoff(*myTakeoff);
-            if (aKillSwitch.test(std::memory_order_relaxed)) {
+            if (aKillSwitch && aKillSwitch->test(std::memory_order_relaxed)) {
                 break;
             }
         }

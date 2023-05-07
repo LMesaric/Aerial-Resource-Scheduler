@@ -55,6 +55,7 @@ namespace objective {
                 myNegativeSumWithPriorities,
                 myMinSurplus,
                 aSchedule.getTotalWaterOutput(),
-                aSchedule.getInstance().theObjectiveFunctionMultipliers);
+                aSchedule.getInstance().theObjectiveFunctionMultipliers
+        );
     }
 }

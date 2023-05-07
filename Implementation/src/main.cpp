@@ -5,14 +5,12 @@
 #include "Parameters.h"
 #include "Statistics.h"
 
-#include <atomic>
 #include <chrono>
 #include <CLI11.hpp>
 #include <iostream>
 #include <limits>
 #include <map>
 #include <string>
-#include <thread>
 
 #include <nlohmann/json.hpp>
 
@@ -180,48 +178,39 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Finished parsing input!" << std::endl;
 
-    const std::chrono::duration<double> myTimeout(
-            myParameters.theTimeoutSeconds > 0
-            ? myParameters.theTimeoutSeconds
-            : std::numeric_limits<double>::max()
-    );
-
-    std::atomic_flag myKillSwitch = ATOMIC_FLAG_INIT;
-    std::atomic_flag myKillTimer = ATOMIC_FLAG_INIT;
-    std::thread myTimeoutThread([myStartTime, myTimeout, &myKillSwitch, &myKillTimer] {
-        const auto myEndTime = myTimeout + myStartTime;
-        while (!myKillTimer.test(std::memory_order_relaxed)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            if (std::chrono::steady_clock::now() > myEndTime) {
-                myKillSwitch.test_and_set(std::memory_order_relaxed);
-                break;
-            }
+    const grasp::Accumulator myAccumulator = [&myParameters, &myInstance, &myStartTime]() {
+        if (myParameters.theTimeoutSeconds > 0) {
+            return grasp::searchWithTimeout(
+                    &myInstance,
+                    myParameters,
+                    myStartTime + std::chrono::duration<double>(myParameters.theTimeoutSeconds)
+            );
+        } else {
+            return grasp::search(&myInstance, myParameters);
         }
-    });
-
-    const auto myAccumulator =
-            myParameters.theThreadCount > 1
-            ? grasp::searchParallelized(&myInstance, myParameters, myKillSwitch)
-            : grasp::searchSequential(&myInstance, myParameters, myKillSwitch);
+    }();
 
     const std::chrono::duration<double> myElapsedSeconds = std::chrono::steady_clock::now() - myStartTime;
 
-    myKillTimer.test_and_set(std::memory_order_relaxed);
-    myTimeoutThread.join();
-
     const auto myGreedyBestObjective = *std::max_element(
-            myAccumulator.theGreedyObjectiveComponents.begin(), myAccumulator.theGreedyObjectiveComponents.end(),
+            myAccumulator.theGreedyObjectiveComponents.cbegin(),
+            myAccumulator.theGreedyObjectiveComponents.cend(),
             [](const objective::Components &c1, const objective::Components &c2) {
                 return c1.theObjective < c2.theObjective;
-            });
+            }
+    );
     const auto [myGreedyMean, myGreedyStdDev] = statistics::meanAndDevTransform(
-            myAccumulator.theGreedyObjectiveComponents);
+            myAccumulator.theGreedyObjectiveComponents
+    );
     const auto [myLsMean, myLsStdDev] = statistics::meanAndDevTransform(
-            myAccumulator.theLsObjectiveComponents);
+            myAccumulator.theLsObjectiveComponents
+    );
     const auto [myIterationDurationMean, myIterationDurationStdDev] = statistics::meanAndDev(
-            myAccumulator.theIterationDurations);
+            myAccumulator.theIterationDurations
+    );
     const auto [myGreedyDurationMean, myGreedyDurationStdDev] = statistics::meanAndDev(
-            myAccumulator.theGreedyDurations);
+            myAccumulator.theGreedyDurations
+    );
     const auto [myLsDurationMean, myLsDurationStdDev] = statistics::meanAndDev(myAccumulator.theLsDurations);
 
     ordered_json myOutputDataOverviewJson = {

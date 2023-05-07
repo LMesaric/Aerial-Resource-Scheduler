@@ -71,7 +71,8 @@ namespace {
             REPEAT(2) std::getline(aStream, myLine); // blank; header
 
             auto myDownloads = parseTwoDimensionMap<T>(
-                    aStream, anInstanceRaw.theTimeSlotsCount, anInstanceRaw.getVehiclesCnt());
+                    aStream, anInstanceRaw.theTimeSlotsCount, anInstanceRaw.getVehiclesCnt()
+            );
             for (std::size_t j = 0; j < anInstanceRaw.getVehiclesCnt(); ++j) {
                 for (std::size_t k = 0; k < anInstanceRaw.theTimeSlotsCount; ++k) {
                     (anInstanceRaw.theVehicles[j].*field)[i].push_back(myDownloads[k][j]);
@@ -111,7 +112,8 @@ InstanceRaw AmplInputParser::parse(std::istream &aStream) const {
         REPEAT(4) std::getline(aStream, myLine); // comment; blank; param A; header
 
         auto myAvailability = parseTwoDimensionMap<bool>(
-                aStream, myInstanceRaw.theTimeSlotsCount, myInstanceRaw.getVehiclesCnt());
+                aStream, myInstanceRaw.theTimeSlotsCount, myInstanceRaw.getVehiclesCnt()
+        );
         for (const auto &myTimeSlot: myAvailability) {
             for (std::size_t i = 0; i < myInstanceRaw.getVehiclesCnt(); ++i) {
                 myInstanceRaw.theVehicles[i].theAvailability.push_back(myTimeSlot[i]);
@@ -128,7 +130,8 @@ InstanceRaw AmplInputParser::parse(std::istream &aStream) const {
         REPEAT(4) std::getline(aStream, myLine); // comment; blank; param U; header
 
         auto myTransitTime = parseTwoDimensionMap<std::uint32_t>(
-                aStream, myInstanceRaw.getVehiclesCnt(), myInstanceRaw.getFrontsCnt());
+                aStream, myInstanceRaw.getVehiclesCnt(), myInstanceRaw.getFrontsCnt()
+        );
         for (std::size_t i = 0; i < myInstanceRaw.getVehiclesCnt(); ++i) {
             for (std::size_t j = 0; j < myInstanceRaw.getFrontsCnt(); ++j) {
                 myInstanceRaw.theVehicles[i].theTransitTimes.push_back(myTransitTime[i][j]);
@@ -149,7 +152,8 @@ InstanceRaw AmplInputParser::parse(std::istream &aStream) const {
         REPEAT(4) std::getline(aStream, myLine); // comment; blank; param W; header
 
         auto myTargetWaterContent = parseTwoDimensionMap<double>(
-                aStream, myInstanceRaw.theTimeSlotsCount, myInstanceRaw.getFrontsCnt());
+                aStream, myInstanceRaw.theTimeSlotsCount, myInstanceRaw.getFrontsCnt()
+        );
 
         for (std::size_t i = 0; i < myInstanceRaw.getFrontsCnt(); ++i) {
             for (std::size_t j = 0; j < myInstanceRaw.theTimeSlotsCount; ++j) {
