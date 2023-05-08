@@ -124,7 +124,7 @@ void assignCLI(CLI::App &app, Parameters &p) {
             "--fitness-coef",
             p.theFitnessWeightFactor,
             "Greedy fitness weight factor."
-    )->required(false)->check(CLI::PositiveNumber);
+    )->required(false)->check(CLI::NonNegativeNumber);
 
     app.add_option(
             "--t0",
