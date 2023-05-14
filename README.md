@@ -11,12 +11,19 @@ under the mentorship of Lea Skorin-Kapov, PhD and co-mentorship of Nina Skorin-K
 ### Build
 
 ```
-cd Implementation
-mkdir build
-cmake -S src -B build
-cmake --build build --config Release
+cd Implementation/
+mkdir build/
 
-"build/Release/AerialResourceScheduler.exe" -i input-ampl-example.txt -o output_file.txt --threads 8
+# Ninja, Unix-Makefiles
+cmake -S src/ -B build/ -DCMAKE_BUILD_TYPE=Release
+cmake --build build/ -j
+
+# Ninja Multi-Config, Visual Studio
+cmake -S src/ -B build/
+cmake --build build/ --config Release -j
+
+# Example run
+./build/AerialResourceScheduler -i "input-ampl-example.txt" -o "output_file.txt" --threads 8
 ```
 
 ---
